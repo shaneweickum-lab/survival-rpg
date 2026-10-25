@@ -262,6 +262,7 @@ export class UI {
     const g = this.game;
     this.closeCtx();
     this.panel = { name, build, ...opts };
+    this.openedAt = performance.now();
     this.panel.refresh = () => { const inner = $('panel-inner'); inner.innerHTML = ''; inner.append(h('button', { class: 'close', onclick: () => this.closeAll() }, '✕')); build(inner); };
     $('panel').classList.remove('hidden');
     this.panel.refresh();
@@ -318,7 +319,6 @@ export class UI {
         if (onClick) { onClick(i, e); return; }
         if (s) this.beginDrag(e, i);
       });
-      el.addEventListener('dblclick', () => { if (s && !onClick) { g.player.consume(i); } });
       grid.append(el);
     }
     return grid;
@@ -335,7 +335,13 @@ export class UI {
     const up = (ev) => {
       removeEventListener('mousemove', mm); removeEventListener('mouseup', up); ghost.remove();
       const target = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.slot');
-      if (!moved) { if (from < BELT) g.player.selectBelt(from); this.panel?.refresh(); return; }
+      if (!moved) {
+        const now = performance.now();
+        if (this._lastClick?.slot === from && now - this._lastClick.t < 400) { this._lastClick = null; g.player.consume(from); this.hideTooltip(); this.panel?.refresh(); return; }
+        this._lastClick = { slot: from, t: now };
+        if (from < BELT) { g.player.selectBelt(from); document.querySelectorAll('#panel-inner .grid .slot.sel').forEach(el => el.classList.remove('sel')); document.querySelector(`#panel-inner .grid .slot[data-slot="${from}"]`)?.classList.add('sel'); }
+        return;
+      }
       if (target?.dataset.slot != null) {
         const to = Number(target.dataset.slot);
         const a = inv.slots[from], b = inv.slots[to];

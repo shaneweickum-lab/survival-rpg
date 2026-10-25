@@ -82,6 +82,7 @@ export class Creatures {
     for (const sp of SPAWNERS) {
       if (sp.night && !night) continue;
       if (CREATURES[sp.type].sealed) continue;
+      if (sp.night && sp.ambient && w.sky.day < 2) continue; // the first night is quiet, mostly
       const count = this.list.filter(c => c.spawner === sp && !c.dead).length;
       if (count >= sp.max) continue;
       let center, radius;

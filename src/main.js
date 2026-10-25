@@ -176,7 +176,7 @@ class Game {
   handleKeys() {
     const input = this.input, ui = this.ui;
     if (!this.started || this.player.dead) return;
-    if (input.hit('Escape') && ui.modalOpen && !['death', 'ending'].includes(ui.panel.name)) { ui.closeAll(); return; }
+    if (input.hit('Escape') && ui.modalOpen && !['death', 'ending'].includes(ui.panel.name) && performance.now() - ui.openedAt > 350) { ui.closeAll(); return; }
     if (input.hit('Tab') || input.hit('KeyI')) ui.toggle('inventory', () => ui.openInventory());
     if (input.hit('KeyQ')) ui.toggle('crafting', () => ui.openCrafting());
     if (input.hit('KeyK')) ui.toggle('skills', () => ui.openSkills());

@@ -1,0 +1,104 @@
+THORNMERE — DESIGN NOTES
+========================
+
+The bell of Thornmere has no tongue.
+
+A village kept itself warm by forgetting. An Ember sat in the Hearth under a Crown, and the
+Crown held back what the village had done long ago, at a river, under banners. When the Brood
+carried the Crown away, the remembering came back all at once. People walked into the wood
+and did not come out. Some of them still drift there at night, as lights.
+
+You wake in an empty house with ash in your mouth.
+
+
+PILLARS
+-------
+1. The body (Green Hell). Water, carbs, fats, protein, energy. Each one you neglect hurts you
+   in its own way. Boil water. Cook meat. Bandage wounds. Draw venom out.
+2. The hand (RuneScape). Fourteen skills on the classic XP curve, raised only by doing.
+   Every level is a small fanfare. Every few levels a new tree, ore, or recipe opens.
+3. The road (Oblivion). An open vale. A compass that points at the next question. Houses full
+   of other people's belongings. Books that tell you the story sideways. A choice at the end
+   that cannot be taken back.
+4. The mind (Resolve). The dark wears you down. Fire, rest, reading and company restore you.
+   At low Resolve the world desaturates and the whispers begin.
+
+
+THE LOOP
+--------
+Gather by hand (sticks, stones, fiber, flint, berries, herbs)
+  -> craft a campfire, light it (Firemaking), boil water, cook
+  -> flint hatchet and pick -> logs and stone
+  -> workbench (in the smithy, or build your own) -> planks, rope, bow, arrows, chest, bed
+  -> bloomery -> bronze bars from copper + tin -> anvil
+  -> bronze tools and sword -> iron (Mining 15) and coal (Mining 20)
+  -> iron weapons and armor, cauldron, potions, building a home
+  -> gold and aether (Mining 30/35) -> rings, Lantern Oil, the deep places
+
+
+SKILLS AND WHAT THEY OPEN
+-------------------------
+Vitality     fight anything; +3 max health per level (starts at 10)
+Melee        +2.5% melee damage per level; training dummy teaches to 10
+Block        absorb more, spend less stamina while guarding
+Marksman     bow damage and draw speed
+Athletics    run faster, recover stamina faster; trained by running and jumping
+Woodcutting  oak, birch, deadwood at 1; pine at 15 (bronze axe)
+Mining       stone, copper, tin at 1; iron 15, coal 20 (bronze pick); gold 30, aether 35 (iron pick)
+Smithing     bronze bars 1, anvil 3, bronze sword 5, iron bars 15, iron gear 16-28, rings 32+
+Crafting     rope, hatchet, bandages 1; workbench 2; bow 6; leather armor 10; backpack 16; chitin 22
+Cooking      meat 1; fish 5; Hearth Stew 8; Honey Cake 14. Higher level = less burning
+Firemaking   faster, surer fire-lighting; fires burn longer
+Foraging     more from every bush; ashleaf at 3, moonpetal (night only) at 5
+Fishing      faster bites, fewer escapes
+Alchemy      Bloodroot Draught 3, Ashleaf Tincture 7, Moonpetal Elixir 10, Honeyed Vigor 12, Lantern Oil 24
+
+
+CREATURES
+---------
+Bog Toad (1)          passive, flees; meat and slime
+Burrow Rat (3)        bites can cause bleeding; meat and hide
+Ember Wasp (5)        flies; guards the hives of Ember Grove; stingers, honeycomb
+Marsh Viper (6)       rears up angry when struck; venom
+Thornback Spider (11) the Hollow, and the woods at night; silk, chitin, venom
+Hollow Wisp (14)      night only, from the second night; drains Resolve; fears fire and Lantern Oil
+The Broodmother (32)  Thornback Hollow. Carries the Hollow Crown.
+
+
+MAIN QUEST — THE UNLIT HEARTH (spoilers)
+----------------------------------------
+1. Ash and Waking ............ gather sticks and stones, build and light a campfire
+2. The Water Remembers ....... the bottle on the nightstand; fill at the mere, boil, drink
+3. An Edge Against the World . flint hatchet, chop five logs, eat something cooked
+4. What the Warden Wrote ..... the Daybook on the bookstand in the Hearth-House
+5. Bronze Before Courage ..... Hadrig's Ledger (smithy), a bloomery, four bronze bars
+6. The Anvil Wakes ........... raise an anvil, forge a bronze sword
+7. Into the Thornback Hollow . slay the Broodmother, take the Hollow Crown
+8. The Bell Without a Tongue . stand before the Hearth and choose:
+     Seal the Ember   — the village forgets and is warm; the wisps go dark; Hearthward Plate
+     Let the Hearth Wake — the village remembers everything; the wisps become harmless; the Ember
+
+
+SIDE QUESTS AND SECRETS
+-----------------------
+For When We Are Big — a child's rhyme in the family house points to the Drowned Oak at the
+  north shore of the mere. Papa's Box holds the Warden's Locket.
+Ash for the Lantern — the Lantern-Keeper wants five Wisp Ash. Pays in a ring and coin.
+The Old Barrow (far north-west) — standing stones, wisps by day, and Dawnwake, the old
+  hearth-keepers' sword, deadly to the hollow dead.
+Thornback Hollow — a silk-bound chest with Sunstring, a golden bow.
+
+
+DEATH
+-----
+Your belt stays with you. Your pack stays where you fell, marked on the map. Go back for it.
+
+
+IDEAS FOR LATER
+---------------
+- Hands and arm models for the first-person view; animated creatures (the packs are static)
+- The village kit's real textures, if they can be recovered from the original pack
+- More of the kit: stairs, balconies, second stories for the player to build
+- Farming in the field plot (carrots already grow back)
+- Seasons and cold; clothing warmth
+- Quests from the people who come back once the Hearth is lit

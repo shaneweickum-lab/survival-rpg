@@ -109,6 +109,7 @@ const BUILDERS = {
     return build('berrybush', p);
   },
   reeds: () => build('reeds', [...Array(9)].map((_, i) => [new THREE.ConeGeometry(0.04, 1.4 + (i % 3) * 0.3, 3), 0x8a9a4a, M(Math.cos(i * 2.1) * 0.25, 0.7, Math.sin(i * 2.1) * 0.25, Math.sin(i) * 0.15, 0, Math.cos(i) * 0.15)])),
+  tuft: () => build('tuft', [...Array(5)].map((_, i) => [new THREE.ConeGeometry(0.035, 0.28 + (i % 3) * 0.08, 3), 0x587a30, M(Math.cos(i * 2.5) * 0.09, 0.14, Math.sin(i * 2.5) * 0.09, Math.sin(i) * 0.35, 0, Math.cos(i) * 0.35)])),
   grass: () => build('grass', [...Array(7)].map((_, i) => [new THREE.ConeGeometry(0.05, 0.5 + (i % 3) * 0.15, 3), 0x6a8a3a, M(Math.cos(i * 2.3) * 0.15, 0.25, Math.sin(i * 2.3) * 0.15, Math.sin(i) * 0.3, 0, Math.cos(i) * 0.3)])),
   hive: () => build('hive', [[lumpy(0.6, 1, 77, 0.12), 0xb08030, MS(0, 0.9, 0, 1, 1.4, 1)], [new THREE.CircleGeometry(0.15, 8), 0x1a1008, M(0, 0.6, 0.62)], [new THREE.CylinderGeometry(0.08, 0.15, 0.5, 5), 0x5a3a22, M(0, 0.15, 0)]]),
   boulder: () => build('boulder', [[lumpy(1, 1, 101, 0.22), flatMat(0xffffff, { texture: 'stone' }), MS(0, 0.55, 0, 1.2, 0.85, 1)]]),

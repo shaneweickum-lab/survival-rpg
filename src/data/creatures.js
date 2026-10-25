@@ -38,7 +38,7 @@ export const CREATURES = {
   },
   broodmother: {
     name: 'The Broodmother', model: 'creatures/Spider', size: 4.6, yaw: 0, level: 32, boss: true,
-    hp: 520, dmg: 24, speed: 4.2, aggro: 20, nightAggro: 20, attackRange: 3.4, attackRate: 1.8,
+    hp: 450, dmg: 22, speed: 4.2, aggro: 20, nightAggro: 20, attackRange: 3.4, attackRate: 1.8,
     gait: 'skitter', poison: 0.6, tint: 0x2a0f12,
     loot: [['hollow_crown', 1, 1, 1], ['chitin', 4, 6, 1], ['venom_sac', 2, 3, 1], ['aether_shard', 1, 2, 1]], xp: 1600,
   },

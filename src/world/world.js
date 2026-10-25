@@ -137,8 +137,8 @@ export class World {
 
   set(key, defFn, cap) {
     if (!this.sets.has(key)) {
-      const range = key.startsWith('tree:') || key.startsWith('d:bigrock') ? 190 : key.startsWith('rock:') || key === 'd:bush' || key === 'g:berrybush' ? 150 : 90;
-      const s = new InstancedSet(defFn(), cap, { range, shadows: !key.startsWith('g:') || key === 'g:berrybush' });
+      const range = key.startsWith('t:') ? 55 : key.startsWith('tree:') || key.startsWith('d:bigrock') ? 190 : key.startsWith('rock:') || key === 'd:bush' || key === 'g:berrybush' ? 150 : 90;
+      const s = new InstancedSet(defFn(), cap, { range, shadows: !(key.startsWith('g:') || key.startsWith('t:')) || key === 'g:berrybush' });
       this.scene.add(s.group);
       this.sets.set(key, s);
     }
@@ -422,6 +422,11 @@ export class World {
 
   // ---------- scenery without interaction ----------
   populateDecor() {
+    for (const [x, z, h] of this.scatter(22000, (x, z, h) => h > 0.6 && h < 32 && this.terrain.slopeAt(x, z) < 0.3 && !this.inVillage(x, z, 0.7) && roadDistance(x, z) > 2 && this.distTo('hollow', x, z) > 0.9, { tries: 4 })) {
+      const set = this.set('t:tuft', () => procModel('tuft'), 22000);
+      const s = 0.7 + this.rand() * 0.8;
+      set.add(new THREE.Matrix4().compose(new THREE.Vector3(x, h - 0.03, z), new THREE.Quaternion().setFromAxisAngle(UP, this.rand() * 6), new THREE.Vector3(s, s, s)));
+    }
     for (const [x, z, h] of this.scatter(500, (x, z, h) => this.dryFlat(x, z, h, 0.4) && h < 30 && !this.inVillage(x, z, 0.75))) {
       const set = this.set('d:bush', () => procModel('bush'), 600);
       const s = 0.6 + this.rand() * 0.8;
