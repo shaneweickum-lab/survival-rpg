@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thornmere</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three/three.module.js" } }</script>
+</head>
+<body>
+<div id="game"></div>
+
+<!-- title -->
+<div id="title" class="screen">
+  <div class="title-inner">
+    <div class="sigil">❦</div>
+    <h1>THORNMERE</h1>
+    <div class="subtitle">the bell has no tongue</div>
+    <div id="loading"><div class="bar"><div id="loadbar"></div></div><div id="loadtext">Gathering the vale…</div></div>
+    <div id="menu" class="hidden">
+      <button id="btn-continue" class="hidden">Continue</button>
+      <button id="btn-new">Begin Anew</button>
+      <button id="btn-controls">How to Play</button>
+    </div>
+  </div>
+</div>
+
+<!-- hud -->
+<div id="hud" class="hidden">
+  <div id="vignette"></div>
+  <div id="hurt"></div>
+  <div id="compass"><div id="compass-strip"></div><div id="compass-needle"></div></div>
+  <div id="target-info" class="hidden"><div id="target-name"></div><div class="tbar"><div id="target-hp"></div></div></div>
+  <div id="clock"></div>
+  <div id="crosshair"></div>
+  <div id="prompt"></div>
+  <div id="action" class="hidden"><div id="action-label"></div><div class="abar"><div id="action-fill"></div></div></div>
+  <div id="vitals">
+    <div id="buffs"></div>
+    <div class="vbar"><span>Health</span><div class="track"><div id="hp-fill" class="fill hp"></div></div></div>
+    <div class="vbar"><span>Stamina</span><div class="track"><div id="st-fill" class="fill st"></div></div></div>
+    <div class="vbar"><span>Resolve</span><div class="track"><div id="rs-fill" class="fill rs"></div></div></div>
+  </div>
+  <div id="needs"></div>
+  <div id="belt-name"></div>
+  <div id="belt"></div>
+  <div id="xpdrops"></div>
+  <div id="toasts"></div>
+  <div id="banner" class="hidden"><div id="banner-top"></div><div id="banner-main"></div></div>
+  <div id="hint"></div>
+  <div id="lockhint" class="hidden">Click to return to the vale</div>
+</div>
+
+<!-- panels -->
+<div id="panel" class="hidden"><div id="panel-inner"></div></div>
+<div id="tooltip" class="hidden"></div>
+<div id="fade"><div id="fade-text"></div></div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

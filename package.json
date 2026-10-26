@@ -1,0 +1,10 @@
+{
+  "name": "thornmere",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Thornmere: a first-person medieval survival RPG",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

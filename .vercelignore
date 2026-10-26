@@ -1,0 +1,5 @@
+# Not needed by the running game: original uploads and full-size texture sources
+assets/source-archives
+assets/textures/source
+docs
+server.js
