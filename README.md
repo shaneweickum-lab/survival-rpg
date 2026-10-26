@@ -28,6 +28,19 @@ On a slow machine, open **http://localhost:8080/?gfx=low**, or turn off shadows 
 
 To browse every model in the repo, open **http://localhost:8080/gallery.html**.
 
+## Deploying to Vercel
+
+The game is a plain static site, so there is nothing to build.
+
+1. In Vercel, choose **Add New → Project** and import this GitHub repository.
+2. Leave the settings as they are. `vercel.json` already sets *no framework, no install,
+   no build, serve the repository root*.
+3. Deploy. The game is at your project's URL, and the asset gallery is at `/gallery`.
+
+`.vercelignore` leaves out files the game never loads (the original zip uploads and the
+full-size texture sources), which keeps each deployment to about 30 MB. Saves live in each
+player's browser, so no database is needed.
+
 ## Controls
 
 | Key | Action |
