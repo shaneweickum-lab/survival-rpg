@@ -124,7 +124,7 @@ class Game {
       this.player.spawnAt(this.world.spawnPoint.pos, this.world.spawnPoint.yaw);
       this.world.sky.hour = 7.2;
       this.quests.start('main');
-      setTimeout(() => this.ui.toast('Look around with the mouse. E to take things. Tab for your pack, Q to craft.'), 1500);
+      setTimeout(() => this.ui.toast('Look around with the mouse. E to take things. Tab opens your pack and every other menu.'), 1500);
     });
   }
 
@@ -177,7 +177,9 @@ class Game {
     const input = this.input, ui = this.ui;
     if (!this.started || this.player.dead) return;
     if (input.hit('Escape') && ui.modalOpen && !['death', 'ending'].includes(ui.panel.name) && performance.now() - ui.openedAt > 350) { ui.closeAll(); return; }
-    if (input.hit('Tab') || input.hit('KeyI')) ui.toggle('inventory', () => ui.openInventory());
+    if (input.hit('Tab')) ui.toggleMenu();
+    if (input.hit('KeyI')) ui.toggle('inventory', () => ui.openInventory());
+    if (input.hit('KeyP')) ui.toggle('prayer', () => ui.openPrayer());
     if (input.hit('KeyQ')) ui.toggle('crafting', () => ui.openCrafting());
     if (input.hit('KeyK')) ui.toggle('skills', () => ui.openSkills());
     if (input.hit('KeyJ')) ui.toggle('journal', () => ui.openJournal());
@@ -187,6 +189,7 @@ class Game {
       return;
     }
     if (!input.locked) return;
+    if (input.hit('KeyG')) this.player.cast(this.player.quickIncantation);
 
     // what are we looking at?
     const p = this.player;
@@ -228,7 +231,7 @@ class Game {
 
   tick(dt) {
     if (this.started) {
-      const paused = this.ui.modalOpen && ['pause', 'controls', 'ending', 'map', 'skills', 'journal', 'book'].includes(this.ui.panel.name);
+      const paused = this.ui.modalOpen && ['pause', 'controls', 'ending', 'map', 'skills', 'journal', 'book', 'prayer'].includes(this.ui.panel.name);
       this.handleKeys();
       if (!paused) {
         this.player.update(dt);

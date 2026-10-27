@@ -13,7 +13,7 @@ export const PROP_MODELS = [
   'Barrel_Apples', 'FarmCrate_Carrot', 'FarmCrate_Empty', 'Stall_Cart_Empty', 'Stall_Empty', 'Lantern_Wall', 'Dummy', 'Barrel_Holder',
   'Cage_Small', 'Vase_Rubble_Medium', 'Coin_Pile', 'Coin_Pile_2', 'Table_Large', 'Chair_1', 'Mug', 'Table_Plate', 'Pot_1', 'Stool',
   'Book_5', 'Book_Stack_1', 'BookGroup_Small_1', 'Carrot', 'Scroll_1', 'Shelf_Simple', 'Vase_2', 'Vase_4', 'Chest_Wood', 'Torch_Metal',
-  'Rope_2', 'Bag', 'Pouch_Large', 'Key_Metal', 'Peg_Rack', 'Shelf_Arch', 'Chalice',
+  'Rope_2', 'Bag', 'Pouch_Large', 'Bucket_Wooden_1', 'Key_Metal', 'Peg_Rack', 'Shelf_Arch', 'Chalice',
 ].map(n => 'props/' + n);
 export const LANDMARK_MODELS = ['items/Chest_Closed', 'items/Skull', 'items/Skull2', 'items/Bone', 'items/Crown', 'items/FishBone'];
 
@@ -116,6 +116,9 @@ export function buildVillage(world) {
   const g = world.game;
   const P = Math.PI;
   const inHouse = (h, path, lx, lz, lrot = 0, opts = {}) => { const p = h.local(lx, lz); return prop(world, path, p.x, p.z, h.rot + lrot, { y: h.floorY, ...opts }); };
+  // light furniture is a structure, so it can be picked up and carried off
+  const movable = (h, type, lx, lz, lrot = 0) => { const p = h.local(lx, lz); return g.structures.create(type, p.x, p.z, h.rot + lrot, {}, h.floorY); };
+  const movableOut = (type, x, z, rot = 0) => g.structures.create(type, x, z, rot, {});
 
   // the house where you wake
   const wake = buildHouse(world, { x: -16, z: 6, rot: P / 2, w: 2, d: 2, style: 'plaster', door: 'S', doorIndex: 1 });
@@ -133,7 +136,8 @@ export function buildVillage(world) {
   });
   bt.r = 0.3;
   world.bookTargets.start_bottle = { t: bt, obj: bottle };
-  inHouse(wake, 'props/Stool', 0.9, 0.6);
+  movable(wake, 'stool', 0.9, 0.6);
+  movable(wake, 'bucket', -1.3, 1.3);
   world.spawnPoint = { pos: wake.local(0.95, 0.2).setY(wake.floorY), yaw: -P / 2 };
   world.wakeHouse = wake;
 
@@ -153,7 +157,7 @@ export function buildVillage(world) {
   bookOn(world, 'warden', 'book_warden', stand.position.x, topOf(stand) - 0.05, stand.position.z, 0.3);
   const bc = inHouse(chapel, 'props/Bookcase_2', 2.3, -1.2, -P / 2);
   addContainer(world, bc, 'chapel_books', 'Bookcase', 'common', [['book_bell', 1]]);
-  for (const [lx, lz] of [[-1.25, 0.2], [1.25, 0.2], [-1.25, 2.0], [1.25, 2.0]]) inHouse(chapel, 'props/Bench', lx, lz);
+  for (const [lx, lz] of [[-1.25, 0.2], [1.25, 0.2], [-1.25, 2.0], [1.25, 2.0]]) movable(chapel, 'bench', lx, lz);
   for (const lx of [-2.2, 2.2]) inHouse(chapel, 'props/CandleStick_Stand', lx, -4.2);
   const ch = chapel.local(0, -0.5);
   const chand = getModel('props/Chandelier').instance();
@@ -232,7 +236,8 @@ export function buildVillage(world) {
   prop(world, 'village/Prop_Wagon', -11, 13, 0.4);
   prop(world, 'props/Barrel_Holder', 6, 12, P / 2);
   prop(world, 'props/Crate_Wooden', -7, 12.5, 0.2);
-  for (const [x, z, r] of [[-4, 7.5, 0], [4, 7.5, 0], [-4, 0.5, P], [4, 0.5, P]]) prop(world, 'props/Bench', x, z, r);
+  for (const [x, z, r] of [[-4, 7.5, 0], [4, 7.5, 0], [-4, 0.5, P], [4, 0.5, P]]) movableOut('bench', x, z, r);
+  movableOut('pot', -9.6, -5.4, 0.3); movableOut('vase', -8.2, -5.6, 1); movableOut('vase', 10.6, -5.2, 2); movableOut('bucket', 1.6, 6.2, 0);
 
   // the field
   const fx = -27, fz = 22;

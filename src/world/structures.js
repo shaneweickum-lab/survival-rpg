@@ -19,6 +19,12 @@ export const STRUCTURE_INFO = {
   chest: { name: 'Storage Chest', model: 'props/Chest_Wood', storage: 24 },
   rain_barrel: { name: 'Rain Barrel', model: 'props/Barrel' },
   torchstand: { name: 'Standing Torch', model: 'props/CandleStick_Stand' },
+  stool: { name: 'Stool', model: 'props/Stool', light: true },
+  chair: { name: 'Chair', model: 'props/Chair_1', light: true },
+  bench: { name: 'Bench', model: 'props/Bench', light: true },
+  bucket: { name: 'Wooden Bucket', model: 'props/Bucket_Wooden_1', light: true },
+  vase: { name: 'Clay Vase', model: 'props/Vase_2', light: true },
+  pot: { name: 'Cooking Pot', model: 'props/Pot_1', light: true },
   fence: { name: 'Fence', model: 'village/Prop_WoodenFence_Single' },
   floor: { name: 'Timber Floor', model: 'village/Floor_WoodDark' },
   wall: { name: 'Plaster Wall', model: 'village/Wall_Plaster_Straight' },
@@ -63,7 +69,7 @@ export class Structures {
       w.addDoor(pivot, rot);
       s.door = w.doors[w.doors.length - 1];
       s.extra = pivot;
-    } else if (type !== 'roof' && type !== 'campfire' && type !== 'bedroll') {
+    } else if (type !== 'roof' && type !== 'campfire' && type !== 'bedroll' && (!info.light || type === 'bench')) {
       s.colliders.push(w.colliders.add({ kind: 'box', minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z, y0: box.min.y, y1: box.max.y }));
     }
 
@@ -104,6 +110,9 @@ export class Structures {
         },
         ...pickUp(),
       });
+    } else if (info.light) {
+      // light furniture: pick it up and carry it somewhere else
+      T({ r: Math.max(0.4, Math.max(size.x, size.z) / 2), prompt: () => null, altPrompt: `Pick up ${info.name} (${ITEMS[KIT[type]].weight} kg)`, alt: () => this.pickUp(s) });
     } else if (type === 'torchstand') {
       s.fire = w.addFire({ pos: new THREE.Vector3(x, box.max.y - 0.1, z), lit: true, radius: 8, intensity: 30, lightY: 0.3 });
       T({ prompt: () => null, ...pickUp() });
@@ -257,9 +266,18 @@ export class Structures {
     if (!g.inventory.remove(gh.itemId, 1)) { this.cancelPlacement(); return; }
     this.create(gh.type, gh.x, gh.z, gh.finalRot, {}, gh.y);
     g.audio.play('craft');
-    g.skills.add('crafting', 5);
+    g.skills.add('construction', GRID.has(gh.type) ? 20 : 8);
     g.events.emit('placed', gh.type);
     if (!g.inventory.count(gh.itemId)) this.cancelPlacement();
+  }
+
+  // time skipped in a moment (crafting) still burns fuel and fills barrels
+  passTime(sec) {
+    const rain = this.world.sky.rain;
+    for (const s of this.list) {
+      if (s.type === 'campfire' && s.state.lit) { s.state.fuel -= sec; if (s.state.fuel <= 0) { s.state.lit = false; s.fire.lit = false; s.state.fuel = 0; } }
+      if (s.type === 'rain_barrel') s.state.water = Math.min(5, s.state.water + sec * (rain > 0.3 ? 0.02 : 0.0008));
+    }
   }
 
   serialize() {

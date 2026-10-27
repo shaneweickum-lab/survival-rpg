@@ -1,6 +1,6 @@
 // Core game state: events, inventory, skills, quests.
 import { ITEMS, item } from '../data/items.js';
-import { SKILLS, XP_TABLE, levelForXp, MAX_LEVEL } from '../data/skills.js';
+import { SKILLS, XP_TABLE, levelForXp, MAX_LEVEL, playerLevelFor } from '../data/skills.js';
 import { QUESTS } from '../data/quests.js';
 
 export class Events {
@@ -43,6 +43,7 @@ export class Inventory {
   }
 
   count(id) { return this.slots.reduce((a, s) => a + (s && s.id === id ? s.n : 0), 0); }
+  get weight() { return this.slots.reduce((a, s) => a + (s ? ITEMS[s.id].weight * s.n : 0), 0); }
   has(reqs) { return Object.entries(reqs).every(([id, n]) => this.count(id) >= n); }
   canFit(id, n = 1) {
     const def = item(id);
@@ -95,13 +96,17 @@ export class Skills {
   }
   add(id, amount) {
     if (!amount) return;
-    const before = this.level(id);
+    const before = this.level(id), plBefore = this.playerLevel;
     this.xp[id] = (this.xp[id] || 0) + amount;
     const after = this.level(id);
     this.events.emit('xp', id, amount);
     if (after > before) this.events.emit('levelup', id, after);
+    if (this.playerLevel > plBefore) this.events.emit('playerlevel', this.playerLevel);
   }
   get total() { return Object.keys(SKILLS).reduce((a, k) => a + this.level(k), 0); }
+  get playerLevel() { return playerLevelFor(this.total); }
+  // skill levels still needed for the next player level
+  get toNextPlayerLevel() { const t = this.total; let n = 0; while (playerLevelFor(t + n) === this.playerLevel) n++; return n; }
   get combat() { // a RuneScape-flavored combat level
     const L = (k) => this.level(k);
     return Math.floor((L('vitality') + L('block')) * 0.25 + Math.max(L('blade'), L('marksman') * 1.0) * 0.4 + 1);

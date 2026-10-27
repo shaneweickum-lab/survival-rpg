@@ -5,6 +5,7 @@ import { WATER_LEVEL } from '../data/places.js';
 import { clamp } from '../engine/noise.js';
 import { makeItemObject } from '../game/itemvisuals.js';
 import { BELT, BASE_SLOTS } from '../game/state.js';
+import { INCANTATION_BY_ID } from '../data/incantations.js';
 
 const EYE = 1.62, RADIUS = 0.35, HEIGHT = 1.75;
 const BUFF_INFO = {
@@ -16,7 +17,10 @@ const BUFF_INFO = {
   wardlight: { name: 'Wardlight', icon: '🕯' },
   sharpened: { name: 'Sharpened', icon: '🗡' },
   rested: { name: 'Rested', icon: '💤' },
+  ironskin: { name: 'Words of Iron', icon: '🛡' },
 };
+export const MAX_CALORIES = 3000;
+const BAG_CAPACITY = { satchel: 6, backpack: 14 };
 export { BUFF_INFO };
 
 export class Player {
@@ -27,7 +31,9 @@ export class Player {
     this.yaw = 0; this.pitch = 0;
     this.onGround = true;
     this.hp = 100; this.stamina = 100; this.resolve = 100;
-    this.needs = { water: 85, carbs: 70, fat: 70, protein: 70, energy: 90 };
+    this.needs = { water: 85, carbs: 70, fat: 70, protein: 70, energy: 90, calories: 2200 };
+    this.mana = 20;
+    this.quickIncantation = 'mend';
     this.buffs = {};
     this.equip = { body: null, offhand: null, trinket: null, bag: null };
     this.belt = 0;
@@ -61,7 +67,14 @@ export class Player {
   get maxHp() { return 70 + this.game.skills.level('vitality') * 3 + (this.bonus('health')); }
   get maxStamina() { return (100 + this.bonus('stamina')) * (this.needs.carbs < 15 ? 0.6 : 1); }
   get maxResolve() { return 100 + this.bonus('resolve'); }
-  get armor() { return (this.equip.body ? ITEMS[this.equip.body.id].armor : 0); }
+  get maxMana() { return 20 + this.game.skills.level('prayer') * 2 + this.bonus('mana'); }
+  get armor() { return (this.equip.body ? ITEMS[this.equip.body.id].armor : 0) + (this.hasBuff('ironskin') ? 10 : 0); }
+  // how much you can carry before you slow down: Strength, a bag, and a fed body
+  get capacity() {
+    const bag = this.equip.bag ? BAG_CAPACITY[this.equip.bag.id] || 0 : 0;
+    return (30 + this.game.skills.level('strength') * 0.5 + bag) * (this.needs.calories < 300 ? 0.85 : 1);
+  }
+  get burden() { return this.inv.weight / this.capacity; }
   bonus(k) { const t = this.equip.trinket; return t ? (ITEMS[t.id].bonus?.[k] || 0) : 0; }
   hasBuff(b) { return (this.buffs[b] || 0) > 0; }
   addBuff(b, secs) { this.buffs[b] = Math.max(this.buffs[b] || 0, secs); this.game.events.emit('buffs'); }
@@ -107,11 +120,16 @@ export class Player {
     this.sneaking = input.down('KeyC') || input.down('ControlLeft');
     const athletics = g.skills.level('athletics');
     let speed = 3.4;
-    const running = input.down('ShiftLeft') && this.stamina > 1 && wish.lengthSq() > 0 && !this.sneaking && !this.blocking;
+    const load = this.burden;
+    const overloaded = load > 1;
+    if (overloaded && !this._warnedLoad) { this._warnedLoad = true; g.ui.toast(load > 1.5 ? 'You are carrying far too much to move.' : 'You are overburdened. You cannot run.'); }
+    if (!overloaded) this._warnedLoad = false;
+    const running = input.down('ShiftLeft') && this.stamina > 1 && wish.lengthSq() > 0 && !this.sneaking && !this.blocking && !overloaded;
     if (running) speed = 6.2 + athletics * 0.03;
     if (this.sneaking) speed = 1.8;
     if (this.blocking || this.draw > 0) speed *= 0.55;
     if (this.needs.energy < 15) speed *= 0.8;
+    if (overloaded) speed *= load > 1.5 ? 0.12 : 0.55;
     if (swimming) speed = running ? 3.0 : 2.2;
     if (this.action) speed *= 0.4;
 
@@ -123,7 +141,7 @@ export class Player {
       if (input.down('Space')) this.vel.y += 6 * dt;
     } else {
       this.vel.y -= 20 * dt;
-      if (this.onGround && input.hit('Space') && !uiOpen && this.stamina > 8) { this.vel.y = 6.2; this.onGround = false; this.useStamina(8); g.skills.add('athletics', 1); }
+      if (this.onGround && input.hit('Space') && !uiOpen && this.stamina > 8 && !overloaded) { this.vel.y = 6.2; this.onGround = false; this.useStamina(8); g.skills.add('athletics', 1); }
     }
     const prev = this.pos.clone();
     this.pos.addScaledVector(this.vel, dt);
@@ -147,6 +165,8 @@ export class Player {
 
     const moved = Math.hypot(this.pos.x - prev.x, this.pos.z - prev.z);
     this.speedNow = moved / Math.max(dt, 1e-4);
+    // hauling a heavy pack builds Strength
+    if (load > 0.5 && moved > 0.005) { this.haulAcc = (this.haulAcc || 0) + moved * load; if (this.haulAcc > 30) { this.haulAcc = 0; g.skills.add('strength', 5); } }
     if (running && moved > 0.01) { this.useStamina(9 * dt); this.athleticsAcc = (this.athleticsAcc || 0) + moved; if (this.athleticsAcc > 25) { this.athleticsAcc = 0; g.skills.add('athletics', 6); } }
     if (swimming) { this.useStamina(4 * dt * (running ? 2 : 1)); if (this.stamina <= 0) this.hurt(8 * dt, 'drown'); }
 
@@ -234,6 +254,13 @@ export class Player {
     drain('fat', 0.032);
     drain('protein', 0.038);
     drain('energy', 0.026 + (w.sky.isNight ? 0.015 : 0));
+    // calories burn with everything you do, faster when running or hauling
+    n.calories = Math.max(0, n.calories - dt * (1.2 + (running ? 1.8 : 0) + (this.burden > 0.6 ? 0.6 : 0) + (this.swing ? 3 : 0)));
+    if (n.calories <= 0) this.hurt(0.3 * dt, 'hunger');
+    if (n.calories < 300 && !this._warnedCal) { this._warnedCal = true; g.ui.toast('You are starving. Eat something real.'); }
+    if (n.calories > 400) this._warnedCal = false;
+    // mana returns slowly, faster by a fire
+    this.mana = Math.min(this.maxMana, this.mana + dt * (0.25 + (w.warmthAt(this.pos) > 0 ? 0.5 : 0) + g.skills.level('prayer') * 0.01));
 
     // buffs tick down
     for (const k of Object.keys(this.buffs)) { this.buffs[k] -= dt; if (this.buffs[k] <= 0) { delete this.buffs[k]; g.events.emit('buffs'); } }
@@ -247,6 +274,7 @@ export class Player {
       let regen = 14 + g.skills.level('athletics') * 0.25;
       if (this.hasBuff('vigor')) regen *= 2.5;
       if (n.water < 15) regen *= 0.4;
+      if (n.calories < 300) regen *= 0.5;
       this.stamina = Math.min(this.maxStamina, this.stamina + regen * dt);
     }
     this.stamina = Math.min(this.stamina, this.maxStamina);
@@ -285,6 +313,7 @@ export class Player {
     if (def.type === 'food' || def.type === 'drink') {
       const f = def.food;
       for (const k of ['water', 'carbs', 'fat', 'protein']) this.needs[k] = clamp(this.needs[k] + (f[k] || 0), 0, 100);
+      this.needs.calories = Math.min(MAX_CALORIES, this.needs.calories + (def.kcal || 0));
       if (def.raw && Math.random() < def.raw.chance) { this.addBuff(def.raw.effect, 40); g.ui.toast(def.type === 'drink' ? 'Something in the water was alive.' : 'That was a mistake.'); }
       if (def.buff) this.addBuff(def.buff, 300);
       if (s.id === 'burnt_meat') this.resolve = Math.max(0, this.resolve - 3);
@@ -307,8 +336,57 @@ export class Player {
       return;
     }
     if (def.type === 'book') { g.ui.readBook(def.lore); return; }
+    if (def.bury) { this.bury(s.id); return; }
     if (def.type === 'placeable') { this.selectSlotForPlacement(slotIndex); return; }
     if (['armor', 'shield', 'trinket', 'bag'].includes(def.type)) { this.equipItem(slotIndex); return; }
+  }
+
+  // ---------- prayer ----------
+  bury(id) {
+    const g = this.game, def = ITEMS[id];
+    if (this.action) return;
+    if (this.isSwimming()) { g.ui.toast('You cannot bury anything here.'); return; }
+    this.startAction(`Burying the ${def.name.toLowerCase()}…`, 1.4, () => {
+      if (!this.inv.remove(id, 1)) return;
+      g.skills.add('prayer', def.bury);
+      g.audio.play('dig');
+      g.particles.burst(this.pos.clone().add(new THREE.Vector3(-Math.sin(this.yaw), 0.1, -Math.cos(this.yaw))), 0x5a4a38, 10, 2, 0.12);
+      if (Math.random() < 0.25) g.ui.toast(['You say what words you know.', 'The earth takes it quietly.', 'Rest. Someone remembers.'][Math.floor(Math.random() * 3)]);
+    });
+  }
+
+  cast(id) {
+    const g = this.game, inc = INCANTATION_BY_ID[id];
+    if (!inc) return;
+    if (g.skills.level('prayer') < inc.level) { g.ui.toast(`${inc.name} needs Prayer ${inc.level}.`); g.audio.play('error'); return; }
+    if (this.mana < inc.mana) { g.ui.toast('Not enough mana.'); g.audio.play('error'); return; }
+    if (this.action) return;
+    this.startAction(`“${inc.words}”`, 1.0, () => {
+      if (this.mana < inc.mana) return;
+      this.mana -= inc.mana;
+      const e = inc.effect;
+      if (e.heal) this.hp = Math.min(this.maxHp, this.hp + e.heal);
+      if (e.resolve) this.resolve = Math.min(this.maxResolve, this.resolve + e.resolve);
+      for (const c of e.cure || []) this.cure(c);
+      if (e.buff) this.addBuff(e.buff[0], e.buff[1]);
+      if (e.calories) this.needs.calories = Math.min(MAX_CALORIES, this.needs.calories + e.calories);
+      g.skills.add('prayer', Math.round(inc.mana * 1.5));
+      g.audio.play('chant');
+      g.particles.glow(this.pos.clone().setY(this.pos.y + 1.1), 0xffe8a0, 18, 0.35);
+    }, { cancelOnMove: false });
+  }
+
+  // time that passes in a moment (crafting): the body keeps burning
+  passTime(sec) {
+    const n = this.needs;
+    n.water = Math.max(0, n.water - 0.1 * sec);
+    n.carbs = Math.max(0, n.carbs - 0.05 * sec);
+    n.fat = Math.max(0, n.fat - 0.032 * sec);
+    n.protein = Math.max(0, n.protein - 0.038 * sec);
+    n.energy = Math.max(0, n.energy - 0.026 * sec);
+    n.calories = Math.max(0, n.calories - 1.2 * sec);
+    this.mana = Math.min(this.maxMana, this.mana + 0.25 * sec);
+    for (const k of Object.keys(this.buffs)) if (this.buffs[k] < 9000) { this.buffs[k] -= sec; if (this.buffs[k] <= 0) delete this.buffs[k]; }
   }
 
   drinkWater(amount, murky) {
@@ -408,7 +486,7 @@ export class Player {
       if (!m.left) this.draw = 0;
       return;
     }
-    if (def && ['food', 'drink', 'potion', 'medicine', 'book', 'placeable', 'armor', 'shield', 'trinket', 'bag'].includes(def.type)) {
+    if (def && (def.bury || ['food', 'drink', 'potion', 'medicine', 'book', 'placeable', 'armor', 'shield', 'trinket', 'bag'].includes(def.type))) {
       if (m.leftPressed) this.consume(this.belt);
       return;
     }
@@ -449,10 +527,12 @@ export class Player {
     let dmg = (def?.dmg || 3) * (1 + blade * 0.025) * (s.power ? 1.8 : 1);
     if (this.hasBuff('sharpened') && def?.type === 'weapon') dmg *= 1.2;
     if (this.needs.protein < 15) dmg *= 0.7;
+    dmg *= 1 + g.skills.level('strength') * 0.01;
     const creature = g.creatures.findMeleeTarget(origin, dir, reach);
     if (creature) {
       if (def?.holy && creature.C.hollow) dmg *= def.holy;
       g.creatures.damage(creature, dmg, { from: this.pos, knock: (s.power ? 1.2 : 0.4) * (def?.stagger || 1), power: s.power || (def?.stagger || 0) > 1 });
+      if (s.power) g.skills.add('strength', 6);
       g.audio.play('hit');
       this.wear(1);
       return;
@@ -619,6 +699,8 @@ export class Player {
       n.energy = Math.min(100, n.energy + 100 * quality);
       this.resolve = Math.min(this.maxResolve, this.resolve + 45 * quality + (kind === 'bed' ? 30 : 0));
       this.hp = Math.min(this.maxHp, this.hp + 40 * quality);
+      this.mana = this.maxMana;
+      n.calories = Math.max(200, n.calories - secs * 0.6);
       w.sky.advance(hours);
       w.time += secs * 0.5; // the world moves on while you sleep
       if (kind !== 'ground') { this.respawn = { pos: this.pos.clone(), yaw: this.yaw }; g.ui.toast('You will wake here if you fall.'); }
@@ -655,16 +737,18 @@ export class Player {
     this.stamina = this.maxStamina;
     this.resolve = Math.max(this.resolve, 50);
     for (const k of ['water', 'carbs', 'fat', 'protein', 'energy']) this.needs[k] = Math.max(this.needs[k], 45);
+    this.needs.calories = Math.max(this.needs.calories, 1200);
     g.creatures.list.forEach(c => { if (c.state === 'chase') c.state = 'return'; });
   }
 
   serialize() {
-    return { pos: this.pos.toArray(), yaw: this.yaw, pitch: this.pitch, hp: this.hp, stamina: this.stamina, resolve: this.resolve, needs: this.needs, buffs: this.buffs, equip: this.equip, belt: this.belt, respawn: this.respawn ? { pos: this.respawn.pos.toArray(), yaw: this.respawn.yaw } : null };
+    return { pos: this.pos.toArray(), yaw: this.yaw, pitch: this.pitch, hp: this.hp, stamina: this.stamina, resolve: this.resolve, mana: this.mana, quickIncantation: this.quickIncantation, needs: this.needs, buffs: this.buffs, equip: this.equip, belt: this.belt, respawn: this.respawn ? { pos: this.respawn.pos.toArray(), yaw: this.respawn.yaw } : null };
   }
   load(d) {
     this.pos.fromArray(d.pos); this.yaw = d.yaw; this.pitch = d.pitch || 0;
     this.hp = d.hp; this.stamina = d.stamina; this.resolve = d.resolve;
     Object.assign(this.needs, d.needs); this.buffs = d.buffs || {};
+    this.mana = d.mana ?? this.mana; this.quickIncantation = d.quickIncantation || 'mend';
     this.equip = { body: null, offhand: null, trinket: null, bag: null, ...d.equip };
     this.belt = d.belt || 0;
     this.respawn = d.respawn ? { pos: new THREE.Vector3().fromArray(d.respawn.pos), yaw: d.respawn.yaw } : null;

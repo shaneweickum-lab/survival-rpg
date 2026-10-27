@@ -15,7 +15,8 @@ PILLARS
 -------
 1. The body (Green Hell). Water, carbs, fats, protein, energy. Each one you neglect hurts you
    in its own way. Boil water. Cook meat. Bandage wounds. Draw venom out.
-2. The hand (RuneScape). Fourteen skills on the classic XP curve, raised only by doing.
+2. The hand (RuneScape). Eighteen skills on the classic XP curve to level 100, raised only by
+   doing. Every 18 skill levels gained is one player level.
    Every level is a small fanfare. Every few levels a new tree, ore, or recipe opens.
 3. The road (Oblivion). An open vale. A compass that points at the next question. Houses full
    of other people's belongings. Books that tell you the story sideways. A choice at the end
@@ -52,6 +53,24 @@ Firemaking   faster, surer fire-lighting; fires burn longer
 Foraging     more from every bush; ashleaf at 3, moonpetal (night only) at 5
 Fishing      faster bites, fewer escapes
 Alchemy      Bloodroot Draught 3, Ashleaf Tincture 7, Moonpetal Elixir 10, Honeyed Vigor 12, Lantern Oil 24
+Strength     +0.5 kg carry limit and +1% melee damage per level; hauling (50%+ load), power attacks, chopping, mining
+Prayer       bury bones (20 xp) and skulls (45); +2 mana per level; incantations:
+               5 Words of Mending (heal 5)      10 Ember Hymn (+20 resolve)     15 Litany of Clean Blood (cure)
+               22 Words of Iron (+10 armor)     30 Greater Mending (heal 35)    40 Hearthcall (wisps flee)
+               50 Prayer of the Full Table (+600 calories)
+Hunting      raised by kills; up to +80% chance of extra meat, hide, silk, chitin when butchering
+Construction raised by building and placing; floors, walls, roofs, fences, furniture, chests, beds
+
+
+BODY, LOAD AND TIME
+-------------------
+Calories     up to 3000. Burn ~1.2/s at rest, more when running, fighting, hauling. Food gives
+             kcal from its makeup (carbs and protein 4 per part, fat 9). Under 300: weak and slow.
+Mana         20 + 2 per Prayer level. Returns slowly, faster by a fire, fully on sleep.
+Weight       every item weighs something. Limit = 30 kg + Strength x 0.5 + bag (satchel 6, pack 14).
+             Over 100%: no running or jumping. Over 150%: barely moving.
+Craft time   each recipe has a time in game minutes (roughly its xp / 3). A short real wait, then
+             the clock jumps: needs, fuel and buffs all pass that time too.
 
 
 CREATURES

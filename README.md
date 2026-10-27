@@ -8,8 +8,9 @@ assets in this repository. It mixes three kinds of play:
 - **Green Hell**: you survive with your body. Water must be boiled. Carbs, fats and protein
   are tracked separately. Wounds bleed, venom burns, raw meat sickens, and the dark wears
   down your mind (**Resolve**).
-- **RuneScape**: 14 skills rise by use on the classic experience curve, with XP drops and
-  level-up fanfares. Better trees, ores and recipes open as you level.
+- **RuneScape**: 18 skills rise by use on the classic experience curve up to level 100, with XP
+  drops and level-up fanfares. Every 18 skill levels you gain raises your player level by one.
+  Bury bones for Prayer and speak incantations with mana.
 - **Oblivion**: an open vale to wander, a compass with quest markers, lootable houses,
   readable books, tap or hold attacks, blocking, bows, and a main quest with an ending choice.
 
@@ -54,9 +55,9 @@ player's browser, so no database is needed.
 | E | interact: take, open, drink, read, sleep, talk |
 | F | secondary action: feed a fire, pick a structure back up |
 | 1–8 or mouse wheel | choose the item in your hand from your belt |
-| Tab or I | pack and equipment |
-| Q | crafting |
-| K / J / M | skills / journal / map |
+| Tab | the menu: pack, crafting, skills, prayer, journal, map (one tab each) |
+| I / Q / K / P / J / M | jump straight to pack / crafting / skills / prayer / journal / map |
+| G | speak your chosen incantation |
 | R | rotate while placing a structure |
 | Esc | pause and settings |
 
@@ -69,6 +70,17 @@ player's browser, so no database is needed.
 - Keep near fire after dark. Light, sleep, books and potions restore Resolve.
 - If you fall, your belt stays with you and your pack lies where you died. Go back for it.
 - Sleep in a bed or bedroll to skip the night and set where you wake.
+- Watch your **calories** as well as your three foods. Running, fighting and hauling burn them faster.
+- Everything has a weight. Past your limit you can't run or jump; far past it you can barely move.
+  Strength raises the limit, and so do bags.
+- Crafting takes time. A quick job takes a game minute or two, a suit of armor most of an hour,
+  and the clock moves forward when it's done. Walking away stops the work.
+- Light furniture (stools, chairs, benches, buckets, pots, vases) can be picked up with **F**
+  and set down somewhere else.
+- Make a **Stone Hammer** by hand and you can knap flint from stone at a workbench. Most
+  stones break wrong; Crafting improves the odds.
+- Bury bones to train **Prayer**. At Prayer 5 you learn the Words of Mending (heal 5); more
+  incantations follow at 10, 15, 22, 30, 40 and 50.
 
 ## What's in the vale
 

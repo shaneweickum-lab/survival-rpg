@@ -1,5 +1,7 @@
-// Recipes. `station` null means it can be made by hand anywhere.
+// Recipes. `station` 'hand' means it can be made anywhere.
 // Stations: fire (a lit campfire), workbench, bloomery, anvil, cauldron.
+// Optional fields: `tools` (needed, not used up, they wear a little), `chance` (+ `chanceLvl` per skill level)
+// for crafts that can fail, and `mins`: how long it takes in game minutes. Finishing moves the clock forward.
 
 export const STATIONS = {
   hand: 'By Hand', fire: 'Campfire', workbench: 'Workbench', bloomery: 'Bloomery', anvil: 'Anvil', cauldron: 'Cauldron',
@@ -11,6 +13,7 @@ export const RECIPES = [
   // --- by hand ---
   R('campfire', 'kit_campfire', 1, { stick: 4, stone: 4 }, 'hand', 'firemaking', 1, 15),
   R('rope', 'rope', 1, { fiber: 4 }, 'hand', 'crafting', 1, 8),
+  R('stone_hammer', 'stone_hammer', 1, { stick: 1, stone: 2, fiber: 2 }, 'hand', 'crafting', 1, 12, { mins: 6 }),
   R('flint_hatchet', 'flint_hatchet', 1, { stick: 2, flint: 2, fiber: 2 }, 'hand', 'crafting', 1, 20),
   R('flint_pick', 'flint_pick', 1, { stick: 2, flint: 3, rope: 1 }, 'hand', 'crafting', 2, 25),
   R('club', 'club', 1, { log: 1, fiber: 2 }, 'hand', 'crafting', 1, 10),
@@ -32,6 +35,7 @@ export const RECIPES = [
   R('tan_hide', 'leather', 1, { rat_hide: 2 }, 'fire', 'crafting', 4, 18),
 
   // --- workbench ---
+  R('knap_flint', 'flint', 1, { stone: 1 }, 'workbench', 'crafting', 1, 10, { tools: ['stone_hammer'], chance: 0.15, chanceLvl: 0.005, failXp: 3, fail: 'The stone splits wrong. Only chips.', mins: 3 }),
   R('plank', 'plank', 2, { log: 1 }, 'workbench', 'crafting', 1, 10),
   R('plank_pine', 'plank', 4, { pine_log: 1 }, 'workbench', 'crafting', 8, 18),
   R('fishing_rod', 'fishing_rod', 1, { stick: 2, rope: 1, fiber: 2 }, 'workbench', 'crafting', 3, 25),
@@ -45,18 +49,22 @@ export const RECIPES = [
   R('cloth_fiber', 'cloth', 1, { fiber: 8 }, 'workbench', 'crafting', 2, 14),
   R('satchel', 'satchel', 1, { leather: 3, rope: 2 }, 'workbench', 'crafting', 7, 60),
   R('backpack', 'backpack', 1, { leather: 6, cloth: 3, rope: 3 }, 'workbench', 'crafting', 16, 140),
-  R('chest', 'kit_chest', 1, { plank: 6, rope: 1 }, 'workbench', 'crafting', 4, 40),
-  R('rain_barrel', 'kit_barrel', 1, { plank: 5, rope: 2 }, 'workbench', 'crafting', 5, 40),
-  R('bed', 'kit_bed', 1, { plank: 8, cloth: 3, rope: 2 }, 'workbench', 'crafting', 12, 90),
+  R('chest', 'kit_chest', 1, { plank: 6, rope: 1 }, 'workbench', 'construction', 4, 40),
+  R('rain_barrel', 'kit_barrel', 1, { plank: 5, rope: 2 }, 'workbench', 'construction', 5, 40),
+  R('bed', 'kit_bed', 1, { plank: 8, cloth: 3, rope: 2 }, 'workbench', 'construction', 12, 90),
   R('torchstand', 'kit_torchstand', 1, { stick: 2, iron_bar: 1 }, 'workbench', 'crafting', 9, 30),
   R('bloomery', 'kit_bloomery', 1, { stone: 14, log: 4 }, 'workbench', 'smithing', 1, 40),
   R('cauldron', 'kit_cauldron', 1, { iron_bar: 3 }, 'workbench', 'smithing', 12, 70),
-  R('fence', 'kit_fence', 2, { stick: 4, plank: 1 }, 'workbench', 'crafting', 2, 8),
-  R('floor', 'kit_floor', 1, { plank: 4 }, 'workbench', 'crafting', 3, 15),
-  R('wall', 'kit_wall', 1, { plank: 3, stone: 4, log: 1 }, 'workbench', 'crafting', 4, 20),
-  R('wall_door', 'kit_wall_door', 1, { plank: 4, stone: 3, rope: 1 }, 'workbench', 'crafting', 5, 24),
-  R('wall_window', 'kit_wall_window', 1, { plank: 3, stone: 3 }, 'workbench', 'crafting', 5, 22),
-  R('roof', 'kit_roof', 1, { plank: 8, stone: 6 }, 'workbench', 'crafting', 7, 40),
+  R('stool', 'kit_stool', 1, { plank: 2 }, 'workbench', 'construction', 1, 12),
+  R('chair', 'kit_chair', 1, { plank: 3, stick: 2 }, 'workbench', 'construction', 3, 18),
+  R('bench', 'kit_bench', 1, { plank: 5 }, 'workbench', 'construction', 4, 26),
+  R('bucket', 'kit_bucket', 1, { plank: 2, rope: 1 }, 'workbench', 'construction', 2, 14),
+  R('fence', 'kit_fence', 2, { stick: 4, plank: 1 }, 'workbench', 'construction', 2, 8),
+  R('floor', 'kit_floor', 1, { plank: 4 }, 'workbench', 'construction', 3, 15),
+  R('wall', 'kit_wall', 1, { plank: 3, stone: 4, log: 1 }, 'workbench', 'construction', 4, 20),
+  R('wall_door', 'kit_wall_door', 1, { plank: 4, stone: 3, rope: 1 }, 'workbench', 'construction', 5, 24),
+  R('wall_window', 'kit_wall_window', 1, { plank: 3, stone: 3 }, 'workbench', 'construction', 5, 22),
+  R('roof', 'kit_roof', 1, { plank: 8, stone: 6 }, 'workbench', 'construction', 7, 40),
 
   // --- bloomery ---
   R('bronze_bar', 'bronze_bar', 1, { copper_ore: 1, tin_ore: 1 }, 'bloomery', 'smithing', 1, 25),
@@ -86,5 +94,8 @@ export const RECIPES = [
   R('potion_stamina', 'potion_stamina', 1, { honeycomb: 1, toad_slime: 2, bottle_clean: 1 }, 'cauldron', 'alchemy', 12, 95),
   R('potion_wisp', 'potion_wisp', 1, { wisp_ash: 3, moonpetal: 2, aether_shard: 1, bottle_clean: 1 }, 'cauldron', 'alchemy', 24, 200),
 ];
+
+// Time in game minutes: quick for simple things, longer for complex ones.
+for (const r of RECIPES) r.mins ??= Math.max(2, Math.min(180, Math.round(r.xp / 3)));
 
 export const RECIPE_BY_ID = Object.fromEntries(RECIPES.map(r => [r.id, r]));

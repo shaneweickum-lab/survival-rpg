@@ -29,8 +29,8 @@ export const ITEMS = {
   chitin: { name: 'Chitin Plate', type: 'material', proc: 'chitin', stack: 20, value: 10, desc: 'A shard of shell, black and faintly warm.' },
   venom_sac: { name: 'Venom Sac', type: 'material', proc: 'venom', stack: 20, value: 15, desc: 'Handle carefully. Alchemists turn poison into its own cure.' },
   stinger: { name: 'Wasp Stinger', type: 'material', model: 'items/Dart', stack: 30, value: 6, desc: 'A needle the length of a finger.' },
-  bone: { name: 'Bone', type: 'material', model: 'items/Bone', stack: 30, value: 2, desc: 'Whose? Better not to wonder.' },
-  skull: { name: 'Skull', type: 'material', model: 'items/Skull', stack: 10, value: 5, desc: 'It watches you even in the pack.' },
+  bone: { name: 'Bone', type: 'material', model: 'items/Bone', bury: 20, stack: 30, value: 2, desc: 'Whose? Better not to wonder. Bury it to raise Prayer.' },
+  skull: { name: 'Skull', type: 'material', model: 'items/Skull', bury: 45, stack: 10, value: 5, desc: 'It watches you even in the pack. Bury it to raise Prayer.' },
   wisp_ash: { name: 'Wisp Ash', type: 'material', proc: 'ash', stack: 30, value: 18, desc: 'What is left when the hollow dead are given rest.' },
   toad_slime: { name: 'Toad Slime', type: 'material', proc: 'slime', stack: 20, value: 4, desc: 'Cool and faintly luminous.' },
   cloth: { name: 'Cloth', type: 'material', model: 'props/Banner_1_Cloth', stack: 20, value: 6, desc: 'Woven fiber or silk. Bandages, bedrolls, banners.' },
@@ -76,6 +76,7 @@ export const ITEMS = {
   poultice: { name: 'Herb Poultice', type: 'medicine', proc: 'poultice', stack: 10, value: 14, effect: { cure: ['bleeding', 'poisoned'], heal: 15 }, desc: 'Bloodroot and ashleaf, chewed and bound.' },
 
   // ---------- tools ----------
+  stone_hammer: { name: 'Stone Hammer', type: 'tool', tool: 'hammer', tier: 1, dmg: 5, speed: 0.9, dur: 120, model: 'items/Hammer_Double', tints: { Steel: 0x7a746a, LightSteel: 0x8a8478, DarkSteel: 0x5a554e, Metal: 0x7a746a, DarkMetal: 0x5a554e }, hold: 0.5, stack: 1, value: 6, desc: 'A river stone lashed to a haft. Knap flint from stone at a workbench.' },
   flint_hatchet: { name: 'Flint Hatchet', type: 'tool', tool: 'axe', tier: 1, dmg: 6, speed: 1.0, dur: 80, model: 'items/Axe_small', tints: { Steel: 0x6a6660, LightSteel: 0x8a8478 }, hold: 0.55, stack: 1, value: 8, desc: 'Flint lashed to a stick. It will do.' },
   flint_pick: { name: 'Flint Pick', type: 'tool', tool: 'pick', tier: 1, dmg: 5, speed: 0.9, dur: 80, model: 'props/Pickaxe_Bronze', tint: 0x8a8478, hold: 0.6, stack: 1, value: 8, desc: 'Crude, but the stone yields.' },
   bronze_axe: { name: 'Bronze Axe', type: 'tool', tool: 'axe', tier: 2, dmg: 11, speed: 1.1, dur: 200, model: 'props/Axe_Bronze', hold: 0.6, stack: 1, value: 45, desc: 'A proper axe. Fells pine.' },
@@ -122,6 +123,12 @@ export const ITEMS = {
   kit_chest: { name: 'Storage Chest', type: 'placeable', place: 'chest', model: 'props/Chest_Wood', stack: 1, value: 30, desc: 'Twenty-four slots of safekeeping.' },
   kit_barrel: { name: 'Rain Barrel', type: 'placeable', place: 'rain_barrel', model: 'props/Barrel', stack: 1, value: 20, desc: 'Collects clean rainwater over time.' },
   kit_torchstand: { name: 'Standing Torch', type: 'placeable', place: 'torchstand', model: 'props/CandleStick_Stand', stack: 5, value: 12, desc: 'Light that stays where you leave it.' },
+  kit_stool: { name: 'Stool', type: 'placeable', place: 'stool', model: 'props/Stool', stack: 4, value: 4, desc: 'Light enough to carry anywhere.' },
+  kit_chair: { name: 'Chair', type: 'placeable', place: 'chair', model: 'props/Chair_1', stack: 4, value: 6, desc: 'Someone sat here every evening.' },
+  kit_bench: { name: 'Bench', type: 'placeable', place: 'bench', model: 'props/Bench', stack: 2, value: 10, desc: 'Heavy, but it moves.' },
+  kit_bucket: { name: 'Wooden Bucket', type: 'placeable', place: 'bucket', model: 'props/Bucket_Wooden_1', stack: 4, value: 3, desc: 'Empty. It still smells of the well.' },
+  kit_vase: { name: 'Clay Vase', type: 'placeable', place: 'vase', model: 'props/Vase_2', stack: 4, value: 5, desc: 'Painted with a pattern nobody remembers.' },
+  kit_pot: { name: 'Cooking Pot', type: 'placeable', place: 'pot', model: 'props/Pot_1', stack: 4, value: 6, desc: 'Black with a hundred suppers.' },
   kit_fence: { name: 'Wooden Fence', type: 'placeable', place: 'fence', model: 'village/Prop_WoodenFence_Single', stack: 20, value: 6, desc: 'Snaps to the building grid.' },
   kit_floor: { name: 'Timber Floor', type: 'placeable', place: 'floor', model: 'village/Floor_WoodDark', stack: 20, value: 10, desc: '2×2 m. Snaps to the building grid.' },
   kit_wall: { name: 'Plaster Wall', type: 'placeable', place: 'wall', model: 'village/Wall_Plaster_Straight', stack: 20, value: 14, desc: 'Snaps to the building grid edges.' },
@@ -141,7 +148,27 @@ export const ITEMS = {
   ember_heart: { name: 'Ember of the First Hearth', type: 'trinket', slot: 'trinket', bonus: { resolve: 60, health: 20 }, legendary: true, model: 'items/Heart', tint: 0xff7030, stack: 1, value: 0, desc: 'Warm as a held hand. It beats, slowly. +60 resolve, +20 health.' },
   };
 
-for (const [id, it] of Object.entries(ITEMS)) { it.id = id; it.stack ??= 1; }
+// Weight in kilograms. Explicit values win; otherwise a sensible default by kind.
+const WEIGHTS = {
+  stick: 0.3, stone: 1, flint: 0.3, fiber: 0.05, rope: 0.4, log: 4, pine_log: 5, deadwood: 2, plank: 1.5,
+  copper_ore: 2.5, tin_ore: 2.5, iron_ore: 3, gold_ore: 3, coal: 1.5, aether_shard: 0.5,
+  bronze_bar: 2, iron_bar: 2.5, gold_bar: 3, rat_hide: 0.6, leather: 0.5, spider_silk: 0.05, chitin: 0.6,
+  venom_sac: 0.1, stinger: 0.05, bone: 0.4, skull: 0.8, wisp_ash: 0.05, toad_slime: 0.1, cloth: 0.3, coin: 0.01,
+  bottle: 0.4, bottle_murky: 1, bottle_clean: 1, arrow: 0.05, bandage: 0.1, poultice: 0.2,
+  wooden_shield: 4, leather_armor: 5, chitin_armor: 7, iron_armor: 12, gilded_armor: 10, satchel: 1, backpack: 2,
+  kit_campfire: 6, kit_workbench: 18, kit_bloomery: 25, kit_anvil: 30, kit_cauldron: 15, kit_bedroll: 3, kit_bed: 20,
+  kit_chest: 10, kit_barrel: 8, kit_torchstand: 5, kit_fence: 3, kit_floor: 6, kit_wall: 10, kit_wall_door: 10,
+  kit_wall_window: 9, kit_roof: 15, kit_stool: 2, kit_chair: 3, kit_bench: 9, kit_bucket: 1.5, kit_vase: 2, kit_pot: 2.5,
+  hollow_crown: 2, war_hammer: 6, iron_axe: 4.5, golden_bow: 1.2, wooden_bow: 1,
+};
+const DEFAULT_WEIGHT = { food: 0.3, drink: 1, potion: 0.4, medicine: 0.2, tool: 1.8, weapon: 2.5, bow: 1, trinket: 0.05, book: 0.5, quest: 0.5, material: 0.5 };
+
+for (const [id, it] of Object.entries(ITEMS)) {
+  it.id = id; it.stack ??= 1;
+  it.weight ??= WEIGHTS[id] ?? DEFAULT_WEIGHT[it.type] ?? 0.5;
+  // calories follow the food's makeup: carbs and protein 4 per part, fat 9, scaled to a meal
+  if (it.food) it.kcal ??= Math.round(((it.food.carbs || 0) * 4 + (it.food.fat || 0) * 9 + (it.food.protein || 0) * 4) * 3);
+}
 
 export function item(id) {
   const it = ITEMS[id];

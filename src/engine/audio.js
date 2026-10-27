@@ -81,6 +81,8 @@ export class Audio {
       case 'bell': [220, 277, 330, 440].forEach((f, i) => this.tone(f, 4, { gain: 0.08 * v, when: i * 0.02, attack: 0.005 })); break;
       case 'heartbeat': this.tone(55, 0.12, { gain: 0.3 * v }); this.tone(50, 0.12, { gain: 0.25 * v, when: 0.22 }); break;
       case 'whisper': this.noise(1.5, { freq: 2200, q: 6, gain: 0.05 * v, sweep: 1400, attack: 0.5 }); break;
+      case 'dig': for (let i = 0; i < 3; i++) this.noise(0.18, { freq: 260, q: 0.8, type: 'lowpass', gain: 0.3 * v, when: i * 0.22 }); break;
+      case 'chant': [196, 247, 294].forEach((f, i) => { this.tone(f, 1.6, { type: 'sine', gain: 0.07 * v, attack: 0.25, when: i * 0.05 }); this.tone(f * 2.01, 1.2, { type: 'sine', gain: 0.025 * v, attack: 0.3 }); }); break;
       case 'death': this.tone(220, 2.5, { type: 'sine', gain: 0.15 * v, slide: 55, attack: 0.05 }); this.noise(2, { freq: 300, type: 'lowpass', gain: 0.2 * v, attack: 0.2 }); break;
       default: break;
     }
