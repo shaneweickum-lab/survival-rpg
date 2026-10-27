@@ -61,6 +61,27 @@ player's browser, so no database is needed.
 | R | rotate while placing a structure |
 | Esc | pause and settings |
 
+## The Lights of Thornmere (tutorial)
+
+A new game asks whether you want to walk with the guides. Like RuneScape's Tutorial Island, it's
+a chain of 20 short lessons. Each guide is a lantern-light, the shade of someone who used to live
+here, waiting at a place in or near the village. Follow the beam of light and the compass marker,
+press **E** to speak, do what they ask, and take your reward. Some guides hand you what you need.
+
+| # | Guide | Where | Lesson |
+| --- | --- | --- | --- |
+| 1–2 | Ysolde (the last Warden) | the well, the house you woke in | the Tab menu, taking things, searching containers |
+| 3–7 | Tam (woodsman) | the west fields and treeline | gathering, rope, a flint hatchet, chopping, a campfire |
+| 8–10 | Nell (fisher) | the mere's north shore | filling, boiling and drinking water, fishing |
+| 11–12 | Mother Teague (cook) | the granary, her cottage | cooking, the needs and calories, bandages |
+| 13–15 | Sergeant Bram (soldier) | the training dummy | striking and guarding, a first kill, the bow |
+| 16–17 | Hadrig (smith) | the Greenstone Hills, his bloomery | mining copper and tin, smelting bronze, weight |
+| 18 | Quill (mason) | north of the granary | floors and walls, moving furniture |
+| 19–20 | Brother Aldous (bell-keeper) | the Hearth-House | burying bones, speaking an incantation |
+
+The tracker in the top-left corner shows where you are. When the last lesson ends, the story
+begins at the Hearth-House. You can skip the rest from the pause menu at any time.
+
 ## Survival in short
 
 - Drink **boiled** water. Fill a bottle at the mere, then boil it at a lit campfire.

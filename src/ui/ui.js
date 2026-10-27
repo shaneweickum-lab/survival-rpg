@@ -11,6 +11,7 @@ import { CREATURES } from '../data/creatures.js';
 import { itemIcon } from '../game/itemvisuals.js';
 import { BELT } from '../game/state.js';
 import { BUFF_INFO, MAX_CALORIES } from '../player/player.js';
+import { GUIDES, TUTORIAL_COUNT } from '../data/tutorial.js';
 
 const $ = (id) => document.getElementById(id);
 const h = (tag, attrs = {}, ...kids) => {
@@ -91,6 +92,56 @@ export class UI {
   fade(on, text = '') {
     $('fade').classList.toggle('on', on);
     $('fade-text').innerHTML = text;
+  }
+
+  // ---------- guide dialogue (a chat box, one line at a time) ----------
+  say(guideId, lines) {
+    const G = GUIDES[guideId];
+    this.dialogue = { name: G ? G.name : guideId, color: G ? '#' + G.color.toString(16).padStart(6, '0') : '#d4a64a', lines: [...lines], i: 0 };
+    this.showLine();
+    this.game.audio.play('ui');
+  }
+  showLine() {
+    const d = this.dialogue, box = $('dialogue');
+    if (!d) { box.classList.add('hidden'); return; }
+    box.classList.remove('hidden');
+    box.innerHTML = '';
+    box.onclick = () => this.nextLine();
+    box.append(h('div', { class: 'dname', style: `color:${d.color}` }, d.name), h('div', { class: 'dtext' }, d.lines[d.i]),
+      h('div', { class: 'dmore' }, d.i < d.lines.length - 1 ? 'E — continue' : 'E — close'));
+    clearTimeout(this._dlgT);
+    this._dlgT = setTimeout(() => { if (this.dialogue === d) this.nextLine(); }, 9000 + d.lines[d.i].length * 45);
+  }
+  nextLine() {
+    const d = this.dialogue;
+    if (!d) return;
+    d.i++;
+    if (d.i >= d.lines.length) this.dialogue = null;
+    this.showLine();
+  }
+
+  // the tutorial tracker in the corner
+  renderTutorial() {
+    const g = this.game, t = g.quests.tutorial, box = $('tutorial');
+    if (!t) { box.classList.add('hidden'); return; }
+    box.classList.remove('hidden');
+    const st = t.q.stages[t.s.stage];
+    const goals = st.goals.map((goal, i) => {
+      const prog = g.quests.goalProgress(t.id, i), n = goal.n || 1, ok = prog >= n;
+      return `<div class="tgoal${ok ? ' done' : ''}">${ok ? '✓' : '◇'} ${goal.label}${n > 1 ? ` (${Math.min(prog, n)}/${n})` : ''}</div>`;
+    }).join('');
+    const html = `<div class="ttop">TUTORIAL · ${t.q.index + 1} of ${TUTORIAL_COUNT}</div><div class="tbar2"><div style="width:${100 * (t.q.index + t.s.stage * 0.5) / TUTORIAL_COUNT}%"></div></div><div class="ttitle">${t.q.title.replace(/^\d+\. /, '')}</div>${goals}`;
+    if (html !== this._tutHtml) { this._tutHtml = html; box.innerHTML = html; }
+  }
+
+  openTutorialChoice(onWalk, onSkip) {
+    this.open('tutorialChoice', (root) => {
+      root.append(h('div', { class: 'ptitle' }, 'The Lights of Thornmere'));
+      root.append(h('p', { style: 'max-width:600px;font-size:18px;line-height:1.6;font-style:italic' }, 'Out in the grey morning, small lights hang in the air where people used to stand. They are waiting for someone to teach.'));
+      root.append(h('div', { class: 'choice' },
+        h('button', { onclick: () => { this.closeAll(); onWalk(); } }, h('b', {}, 'Walk with the guides'), 'Twenty short lessons, from your first fire to your first prayer. Each one has a reward. Recommended.'),
+        h('button', { onclick: () => { this.closeAll(); onSkip(); } }, h('b', {}, 'I know the way'), 'Skip the lessons and begin the story at once. The guides stay in the village if you want them later.')));
+    }, { keepUnlocked: false, noClose: true });
   }
 
   // ---------- HUD ----------
@@ -191,6 +242,8 @@ export class UI {
     }
     this._buffT = (this._buffT || 0) - dt;
     if (this._buffT <= 0) { this._buffT = 1; this.renderBuffs(); }
+    this._tutT = (this._tutT || 0) - dt;
+    if (this._tutT <= 0) { this._tutT = 0.3; this.renderTutorial(); }
 
     // clock
     const sky = w.sky;
@@ -202,8 +255,8 @@ export class UI {
     const pos = (b) => { let d = ((b - heading + 540) % 360) - 180; return W / 2 + d * ppd; };
     for (const t of this.ticks) t.el.style.left = pos(t.b) + 'px';
     const tgt = g.quests.activeTarget();
-    if (tgt && PLACES[tgt]) {
-      const P = PLACES[tgt];
+    if (tgt) {
+      const P = tgt;
       const b = (Math.atan2(P.x - p.pos.x, -(P.z - p.pos.z)) * 180 / Math.PI + 360) % 360;
       const near = Math.hypot(P.x - p.pos.x, P.z - p.pos.z) < P.r * 0.4;
       this.questTick.style.display = near ? 'none' : '';
@@ -278,11 +331,11 @@ export class UI {
     this.panel = { name, build, ...opts };
     this.openedAt = performance.now();
     const isMenu = MENU.some(m => m[0] === name);
-    if (isMenu) this.lastMenu = name;
+    if (isMenu) { this.lastMenu = name; g.events.emit('act', 'menu'); }
     this.panel.refresh = () => {
       const inner = $('panel-inner');
       inner.innerHTML = '';
-      inner.append(h('button', { class: 'close', onclick: () => this.closeAll() }, '✕'));
+      if (!opts.noClose) inner.append(h('button', { class: 'close', onclick: () => this.closeAll() }, '✕'));
       if (isMenu) inner.append(h('div', { class: 'menutabs' }, MENU.map(([n, label, key]) => h('button', { class: 'menutab' + (n === name ? ' on' : ''), onclick: () => { if (n !== name) this.openMenu(n); } }, label, h('small', {}, key)))));
       build(inner);
     };
@@ -304,7 +357,7 @@ export class UI {
   toggle(name, fn) { if (this.panel?.name === name) this.closeAll(); else fn(); }
   openMenu(name) { this[MENU_OPEN[name] || 'openInventory'](); }
   // Tab: open the last menu page, or close whatever is open
-  toggleMenu() { if (this.panel) this.closeAll(); else this.openMenu(this.lastMenu || 'inventory'); }
+  toggleMenu() { if (this.panel?.name === 'tutorialChoice') return; if (this.panel) this.closeAll(); else this.openMenu(this.lastMenu || 'inventory'); }
 
   // ---------- inventory ----------
   openInventory() {
@@ -537,6 +590,7 @@ export class UI {
       if (left) g.world.dropItem(out, left, g.player.pos.clone().add(new THREE.Vector3(0, 0.5, 0)));
       for (const [id, n] of Object.entries(r.returns || {})) g.inventory.add(id, n);
       if (out === r.out) { g.events.emit('crafted', r.out, r.n); job.made++; }
+      if (r.skill === 'cooking' && ITEMS[out].type === 'food') g.events.emit('act', 'cook');
     }
     g.skills.add(r.skill, xp);
     // the rest of the work happens in the blink of the clock
@@ -613,8 +667,10 @@ export class UI {
       root.append(h('div', { class: 'tabs' }, ...['quests', 'lore', 'bestiary'].map(t => h('button', { class: 'tab' + (t === tab ? ' on' : ''), onclick: () => { tab = t; this.panel.refresh(); } }, t[0].toUpperCase() + t.slice(1)))));
       const body = h('div', { style: 'width:560px;max-height:60vh;overflow:auto' });
       if (tab === 'quests') {
-        const ids = Object.keys(g.quests.state).sort((a, b) => g.quests.state[a].done - g.quests.state[b].done);
-        if (!ids.length) body.append(h('p', {}, 'Nothing yet.'));
+        const tutDone = Object.keys(g.quests.state).filter(id => QUESTS[id].tutorial && g.quests.state[id].done).length;
+        const ids = Object.keys(g.quests.state).filter(id => !(QUESTS[id].tutorial && g.quests.state[id].done)).sort((a, b) => g.quests.state[a].done - g.quests.state[b].done);
+        if (!ids.length && !tutDone) body.append(h('p', {}, 'Nothing yet.'));
+        if (tutDone) body.append(h('div', { class: 'quest' }, h('h3', {}, `The Lights of Thornmere — ${tutDone} of ${TUTORIAL_COUNT} lessons learned`)));
         for (const id of ids) {
           const s = g.quests.state[id], q = QUESTS[id];
           const box = h('div', { class: 'quest' }, h('h3', {}, q.title + (s.done ? '  — completed' : '')));
@@ -664,7 +720,7 @@ export class UI {
         ctx.fillStyle = '#f0e0b8'; ctx.fillText(P.name, x, y);
       }
       const tgt = g.quests.activeTarget();
-      if (tgt) { const [x, y] = m(PLACES[tgt].x, PLACES[tgt].z); ctx.fillStyle = '#ffcf50'; ctx.font = '18px serif'; ctx.fillText('◆', x, y - 14); }
+      if (tgt) { const [x, y] = m(tgt.x, tgt.z); ctx.fillStyle = '#ffcf50'; ctx.font = '18px serif'; ctx.fillText('◆', x, y - 14); }
       for (const gr of g.graves.list) { const [x, y] = m(gr.pos.x, gr.pos.z); ctx.fillStyle = '#e0a0a0'; ctx.fillText('✝', x, y); }
       for (const s of g.structures.list) if (s.type === 'bed' || s.type === 'bedroll' || s.type === 'campfire') { const [x, y] = m(s.x, s.z); ctx.fillStyle = s.type === 'campfire' ? '#ff9040' : '#a0c0ff'; ctx.fillRect(x - 2, y - 2, 4, 4); }
       const [px, py] = m(p.pos.x, p.pos.z);
@@ -739,6 +795,7 @@ export class UI {
       root.append(h('div', { class: 'ptitle' }, 'Paused', h('small', {}, `Day ${g.world.sky.day}, ${g.world.sky.timeString}`)));
       const col = h('div', { style: 'display:flex;flex-direction:column;gap:8px;width:300px' });
       col.append(h('button', { onclick: () => this.closeAll() }, 'Return to the vale'));
+      if (g.quests.tutorial) col.append(h('button', { onclick: () => { g.quests.endTutorial(true); this.toast('You leave the guides behind. Their lights stay where they are.'); this.closeAll(); } }, 'Skip the tutorial'));
       col.append(h('button', { onclick: () => { g.save.save(); this.toast('Saved.'); } }, 'Save'));
       col.append(h('button', { disabled: g.save.has() ? null : 'disabled', onclick: () => { this.closeAll(); g.save.load(); } }, 'Load last save'));
       col.append(h('button', { onclick: () => this.openControls(true) }, 'How to play'));

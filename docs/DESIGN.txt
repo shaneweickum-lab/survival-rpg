@@ -98,9 +98,19 @@ MAIN QUEST — THE UNLIT HEARTH (spoilers)
      Let the Hearth Wake — the village remembers everything; the wisps become harmless; the Ember
 
 
+TUTORIAL — THE LIGHTS OF THORNMERE
+----------------------------------
+Twenty lessons (src/data/tutorial.js), each a two-stage quest: find the guide and speak (E),
+then do the task. Rewards are items and xp; some guides give supplies when you speak. The guides
+are the shades of villagers, lantern-lights that drift to wherever their next lesson is. A beam
+of light marks the one you are looking for. Their two fire pits (by the mere, by the granary)
+never go out, and Hadrig's old bloomery behind the smithy still burns. Finishing the tutorial
+starts the main quest at stage 4 (What the Warden Wrote); skipping it starts the story at stage 1.
+
+
 SIDE QUESTS AND SECRETS
 -----------------------
-For When We Are Big — a child's rhyme in the family house points to the Drowned Oak at the
+For When We Are Big — a child's rhyme in the family house points to the Drowned Oak, east along the
   north shore of the mere. Papa's Box holds the Warden's Locket.
 Ash for the Lantern — the Lantern-Keeper wants five Wisp Ash. Pays in a ring and coin.
 The Old Barrow (far north-west) — standing stones, wisps by day, and Dawnwake, the old

@@ -122,7 +122,7 @@ ten for the ones who aren't here anymore.
 —
 
 (at the bottom, smaller)
-papa said the box is for when we are big. by the drowned tree at the mere. i am big now i think`,
+papa said the box is for when we are big. by the drowned tree at the edge of the mere, where the road runs out and you walk east along the water. i am big now i think`,
   },
 };
 

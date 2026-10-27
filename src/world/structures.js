@@ -185,7 +185,7 @@ export class Structures {
       if (s.type === 'campfire' && s.state.lit) {
         // a roof overhead keeps rain off
         const sheltered = this.list.some(o => o.type === 'roof' && Math.abs(o.x - s.x) < 2.2 && Math.abs(o.z - s.z) < 2.2);
-        s.state.fuel -= dt * (1 + (sheltered ? 0 : rain * 1.5));
+        if (!s.state.eternal) s.state.fuel -= dt * (1 + (sheltered ? 0 : rain * 1.5));
         if (s.state.fuel <= 0) { s.state.lit = false; s.fire.lit = false; s.state.fuel = 0; }
       }
       if (s.type === 'rain_barrel') s.state.water = Math.min(5, s.state.water + dt * (rain > 0.3 ? 0.02 : 0.0008));
@@ -275,7 +275,7 @@ export class Structures {
   passTime(sec) {
     const rain = this.world.sky.rain;
     for (const s of this.list) {
-      if (s.type === 'campfire' && s.state.lit) { s.state.fuel -= sec; if (s.state.fuel <= 0) { s.state.lit = false; s.fire.lit = false; s.state.fuel = 0; } }
+      if (s.type === 'campfire' && s.state.lit && !s.state.eternal) { s.state.fuel -= sec; if (s.state.fuel <= 0) { s.state.lit = false; s.fire.lit = false; s.state.fuel = 0; } }
       if (s.type === 'rain_barrel') s.state.water = Math.min(5, s.state.water + sec * (rain > 0.3 ? 0.02 : 0.0008));
     }
   }

@@ -28,7 +28,7 @@ export const RECIPES = [
   // --- campfire ---
   R('cook_meat', 'cooked_meat', 1, { raw_meat: 1 }, 'fire', 'cooking', 1, 30, { burn: 'burnt_meat' }),
   R('cook_frog', 'cooked_frog', 1, { frog_leg: 1 }, 'fire', 'cooking', 1, 25, { burn: 'burnt_meat' }),
-  R('cook_fish', 'cooked_fish', 1, { raw_fish: 1 }, 'fire', 'cooking', 5, 40, { burn: 'burnt_meat' }),
+  R('cook_fish', 'cooked_fish', 1, { raw_fish: 1 }, 'fire', 'cooking', 1, 40, { burn: 'burnt_meat' }),
   R('cook_carrot', 'baked_carrot', 1, { carrot: 1 }, 'fire', 'cooking', 1, 12),
   R('cook_mushroom', 'cooked_mushroom', 1, { mushroom: 1 }, 'fire', 'cooking', 2, 18),
   R('boil_water', 'bottle_clean', 1, { bottle_murky: 1 }, 'fire', 'cooking', 1, 6),
