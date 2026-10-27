@@ -2,6 +2,7 @@
 import { ITEMS, item } from '../data/items.js';
 import { SKILLS, XP_TABLE, levelForXp, MAX_LEVEL, playerLevelFor } from '../data/skills.js';
 import { QUESTS } from '../data/quests.js';
+import { PLACES } from '../data/places.js';
 
 export class Events {
   constructor() { this.handlers = {}; }
@@ -129,13 +130,15 @@ export class Quests {
     ev.on('mined', () => this.bump('mine', () => true, 1));
     ev.on('killed', (type) => this.bump('kill', g => g.creature === type, 1));
     ev.on('read', (lore) => this.bump('read', g => g.lore === lore, 1));
+    ev.on('act', (act) => this.bump('act', g => g.act === act, 1));
+    ev.on('xp', (skill, amount) => this.bump('xp', g => g.skill === skill, amount));
     ev.on('inventory', () => this.check());
   }
-  start(id) {
+  start(id, stage = 0) {
     if (this.state[id]) return;
-    this.state[id] = { stage: 0, counters: {}, done: false };
+    this.state[id] = { stage, counters: {}, done: false };
     const q = QUESTS[id];
-    this.game.ui?.questBanner(q.title, q.stages[0].title);
+    this.game.ui?.questBanner(q.tutorial ? 'Tutorial' : q.title, q.tutorial ? q.stages[stage].title : q.stages[stage].title);
     this.game.audio?.play('quest');
     this.check();
   }
@@ -167,12 +170,14 @@ export class Quests {
       if (stage.goals.every((_, i) => this.goalDone(id, i))) {
         s.stage++;
         s.counters = {};
-        this.game.skills.add('vitality', 40);
+        if (!q.tutorial) this.game.skills.add('vitality', 40);
         if (s.stage >= q.stages.length) {
           s.done = true;
-          this.game.ui?.questBanner(q.title, 'Completed');
+          if (q.tutorial) this.finishTutorialStep(id, q);
+          else this.game.ui?.questBanner(q.title, 'Completed');
         } else {
-          this.game.ui?.questBanner(q.title, q.stages[s.stage].title);
+          if (q.tutorial && s.stage === 1) for (const [item, n] of q.give || []) { const left = this.game.inventory.add(item, n); if (left) this.game.world.dropItem(item, left, this.game.player.pos.clone()); }
+          this.game.ui?.questBanner(q.tutorial ? 'Tutorial' : q.title, q.stages[s.stage].title);
         }
         this.game.audio?.play('quest');
         this.game.events.emit('questStage', id, s.stage);
@@ -182,10 +187,33 @@ export class Quests {
     }
     this.game.events.emit('questsChanged');
   }
+  // The tutorial step in progress, if any.
+  get tutorial() {
+    for (const [id, s] of Object.entries(this.state)) if (!s.done && QUESTS[id].tutorial) return { id, q: QUESTS[id], s };
+    return null;
+  }
+  finishTutorialStep(id, q) {
+    const g = this.game, R = q.reward || {};
+    const got = [];
+    for (const [item, n] of R.items || []) { const left = g.inventory.add(item, n); if (left) g.world.dropItem(item, left, g.player.pos.clone()); got.push(`${n > 1 ? n + ' × ' : ''}${ITEMS[item].name}`); }
+    for (const [skill, xp] of Object.entries(R.xp || {})) { g.skills.add(skill, xp); got.push(`${xp} ${SKILLS[skill].name} xp`); }
+    g.ui?.say(q.guide, [...q.done, ...(got.length ? [`Reward: ${got.join(', ')}.`] : [])]);
+    g.ui?.questBanner('Tutorial complete', q.title.replace(/^\d+\. /, ''));
+    if (q.next) setTimeout(() => this.start(q.next), 400);
+    else this.endTutorial(false);
+  }
+  // After the last lesson (or when skipped), the story begins.
+  endTutorial(skipped) {
+    this.flags.tutorialDone = true;
+    for (const [id, s] of Object.entries(this.state)) if (QUESTS[id].tutorial && !s.done) delete this.state[id];
+    setTimeout(() => this.start('main', skipped ? 0 : 3), skipped ? 0 : 1500);
+  }
   activeTarget() {
-    for (const id of ['main', ...Object.keys(this.state)]) {
+    const t = this.tutorial;
+    const ids = t ? [t.id] : ['main', ...Object.keys(this.state)];
+    for (const id of ids) {
       const st = this.stage(id);
-      if (st?.target) return st.target;
+      if (st?.target) return typeof st.target === 'string' ? PLACES[st.target] : st.target;
     }
     return null;
   }

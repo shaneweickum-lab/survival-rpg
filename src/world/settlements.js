@@ -63,6 +63,7 @@ export function addContainer(world, obj, id, name, table, fixed = [], onOpen = n
       if (!c.items) c.items = rollLoot(table, fixed);
       c.opened = true;
       g.audio.play('door', 0.5);
+      g.events.emit('act', 'search');
       g.ui.openContainer(c);
       onOpen?.(g);
     },
@@ -232,7 +233,7 @@ export function buildVillage(world) {
   world.merchantPos = lanternBase;
 
   const dummy = prop(world, 'props/Dummy', 11, 11, -0.8);
-  targetFor(world, dummy, { name: 'Training Dummy', hitVerb: 'Strike', hit: (g, info) => { g.audio.play('hit'); if (g.skills.level('blade') < 10) g.skills.add('blade', 6); else g.ui.toast('The dummy has nothing left to teach you.'); return true; } });
+  targetFor(world, dummy, { name: 'Training Dummy', hitVerb: 'Strike', hit: (g, info) => { g.audio.play('hit'); g.events.emit('act', 'dummy'); if (g.skills.level('blade') < 10) g.skills.add('blade', 6); else g.ui.toast('The dummy has nothing left to teach you.'); return true; } });
   prop(world, 'village/Prop_Wagon', -11, 13, 0.4);
   prop(world, 'props/Barrel_Holder', 6, 12, P / 2);
   prop(world, 'props/Crate_Wooden', -7, 12.5, 0.2);
@@ -302,7 +303,7 @@ function buildLandmarks(world) {
     world.scene.add(r);
     world.colliders.add({ kind: 'circle', x: D.x + ox, z: D.z + oz, r: 0.8, y0: -5, y1: 20 });
   }
-  chest(world, D.x + 0.3, D.z + 2.4, 2.8, 'rhyme_chest', 'Papa’s Box', [['amulet_resolve', 1], ['coin', 35], ['potion_resolve', 1]], (g) => g.quests.setFlag('rhyme_chest'));
+  chest(world, D.x + 0.3, D.z - 2.4, 2.8, 'rhyme_chest', 'Papa’s Box', [['amulet_resolve', 1], ['coin', 35], ['potion_resolve', 1]], (g) => g.quests.setFlag('rhyme_chest'));
 
   // Thornback Hollow
   const H = PLACES.hollow;

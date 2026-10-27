@@ -14,6 +14,7 @@ import { Structures, STRUCTURE_MODELS } from './world/structures.js';
 import { Creatures, CREATURE_MODELS } from './entities/creatures.js';
 import { Projectiles, Graves } from './entities/projectiles.js';
 import { Player } from './player/player.js';
+import { Guides } from './world/guides.js';
 import { UI } from './ui/ui.js';
 import { CREATURES } from './data/creatures.js';
 import { ITEMS } from './data/items.js';
@@ -71,6 +72,7 @@ class Game {
     this.world = new World(this);
     this.world.build();
     this.creatures = new Creatures(this);
+    this.guides = new Guides(this);
     this.projectiles = new Projectiles(this);
     this.graves = new Graves(this);
     this.player = new Player(this);
@@ -123,8 +125,10 @@ class Game {
       this.begin();
       this.player.spawnAt(this.world.spawnPoint.pos, this.world.spawnPoint.yaw);
       this.world.sky.hour = 7.2;
-      this.quests.start('main');
-      setTimeout(() => this.ui.toast('Look around with the mouse. E to take things. Tab opens your pack and every other menu.'), 1500);
+      setTimeout(() => this.ui.openTutorialChoice(
+        () => { this.quests.start('tut01'); this.ui.toast('Look around with the mouse. Follow the light on your compass. E to speak and take things.'); },
+        () => { this.quests.endTutorial(true); this.ui.toast('Look around with the mouse. E to take things. Tab opens your pack and every other menu.'); },
+      ), 600);
     });
   }
 
@@ -176,7 +180,7 @@ class Game {
   handleKeys() {
     const input = this.input, ui = this.ui;
     if (!this.started || this.player.dead) return;
-    if (input.hit('Escape') && ui.modalOpen && !['death', 'ending'].includes(ui.panel.name) && performance.now() - ui.openedAt > 350) { ui.closeAll(); return; }
+    if (input.hit('Escape') && ui.modalOpen && !['death', 'ending', 'tutorialChoice'].includes(ui.panel.name) && performance.now() - ui.openedAt > 350) { ui.closeAll(); return; }
     if (input.hit('Tab')) ui.toggleMenu();
     if (input.hit('KeyI')) ui.toggle('inventory', () => ui.openInventory());
     if (input.hit('KeyP')) ui.toggle('prayer', () => ui.openPrayer());
@@ -189,6 +193,7 @@ class Game {
       return;
     }
     if (!input.locked) return;
+    if (ui.dialogue && (input.hit('KeyE') || input.hit('Enter'))) { ui.nextLine(); input.pressed.delete('KeyE'); }
     if (input.hit('KeyG')) this.player.cast(this.player.quickIncantation);
 
     // what are we looking at?
@@ -238,6 +243,7 @@ class Game {
         this.world.update(dt, this.player.pos);
         this.structures.update(dt);
         this.creatures.update(dt);
+        this.guides.update(dt);
         this.projectiles.update(dt);
         this.graves.update();
         this.save.update(dt);

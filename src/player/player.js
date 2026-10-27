@@ -349,6 +349,7 @@ export class Player {
     this.startAction(`Burying the ${def.name.toLowerCase()}…`, 1.4, () => {
       if (!this.inv.remove(id, 1)) return;
       g.skills.add('prayer', def.bury);
+      g.events.emit('act', 'bury');
       g.audio.play('dig');
       g.particles.burst(this.pos.clone().add(new THREE.Vector3(-Math.sin(this.yaw), 0.1, -Math.cos(this.yaw))), 0x5a4a38, 10, 2, 0.12);
       if (Math.random() < 0.25) g.ui.toast(['You say what words you know.', 'The earth takes it quietly.', 'Rest. Someone remembers.'][Math.floor(Math.random() * 3)]);
@@ -371,6 +372,7 @@ export class Player {
       if (e.buff) this.addBuff(e.buff[0], e.buff[1]);
       if (e.calories) this.needs.calories = Math.min(MAX_CALORIES, this.needs.calories + e.calories);
       g.skills.add('prayer', Math.round(inc.mana * 1.5));
+      g.events.emit('act', 'cast');
       g.audio.play('chant');
       g.particles.glow(this.pos.clone().setY(this.pos.y + 1.1), 0xffe8a0, 18, 0.35);
     }, { cancelOnMove: false });

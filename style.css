@@ -208,3 +208,15 @@ h1 { font-family: var(--title); font-size: clamp(42px, 8vw, 78px); letter-spacin
   #belt .slot { width: 40px; height: 40px; }
   #vitals { width: 180px; }
 }
+
+#dialogue { position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%); width: min(620px, 92vw); background: rgba(16, 12, 8, 0.9); border: 1px solid var(--panel-edge); box-shadow: 0 0 0 1px #000, 0 6px 30px rgba(0, 0, 0, 0.6); padding: 12px 18px 10px; pointer-events: auto; }
+#dialogue .dname { font-family: var(--title); font-size: 14px; letter-spacing: 0.08em; margin-bottom: 4px; }
+#dialogue .dtext { font-size: 18px; line-height: 1.45; }
+#dialogue .dmore { text-align: right; font-family: var(--title); font-size: 11px; color: var(--ink-dim); margin-top: 6px; }
+#tutorial { position: absolute; left: 22px; top: 18px; width: 270px; background: linear-gradient(90deg, rgba(15, 11, 7, 0.8), rgba(15, 11, 7, 0.4)); border-left: 2px solid var(--gold-dim); padding: 8px 12px; text-shadow: 0 1px 2px #000; }
+#tutorial .ttop { font-family: var(--title); font-size: 11px; letter-spacing: 0.15em; color: var(--gold); }
+#tutorial .tbar2 { height: 3px; background: rgba(0, 0, 0, 0.5); margin: 4px 0 6px; }
+#tutorial .tbar2 div { height: 100%; background: var(--gold); }
+#tutorial .ttitle { font-family: var(--title); font-size: 15px; margin-bottom: 3px; }
+#tutorial .tgoal { font-size: 14px; color: var(--ink); }
+#tutorial .tgoal.done { color: #8ab870; }

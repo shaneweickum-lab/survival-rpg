@@ -1,3 +1,5 @@
+import { tutorialQuests } from './tutorial.js';
+
 // Quests. Each stage has objectives; when all are met the next stage begins.
 // Objective types: have, craft, place, light, drink, eat, chop, mine, kill, read, reach, flag.
 
@@ -96,3 +98,5 @@ export const QUESTS = {
     ],
   },
 };
+
+Object.assign(QUESTS, tutorialQuests());
