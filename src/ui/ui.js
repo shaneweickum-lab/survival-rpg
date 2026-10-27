@@ -2,14 +2,15 @@
 import * as THREE from 'three';
 import { ITEMS } from '../data/items.js';
 import { RECIPES, STATIONS } from '../data/recipes.js';
-import { SKILLS, XP_TABLE, MAX_LEVEL } from '../data/skills.js';
+import { SKILLS, XP_TABLE, MAX_LEVEL, LEVELS_PER_PLAYER_LEVEL } from '../data/skills.js';
+import { INCANTATIONS } from '../data/incantations.js';
 import { QUESTS } from '../data/quests.js';
 import { LORE, ENDINGS, LANTERN_LINES, INTRO } from '../data/lore.js';
 import { PLACES } from '../data/places.js';
 import { CREATURES } from '../data/creatures.js';
 import { itemIcon } from '../game/itemvisuals.js';
 import { BELT } from '../game/state.js';
-import { BUFF_INFO } from '../player/player.js';
+import { BUFF_INFO, MAX_CALORIES } from '../player/player.js';
 
 const $ = (id) => document.getElementById(id);
 const h = (tag, attrs = {}, ...kids) => {
@@ -25,6 +26,10 @@ const h = (tag, attrs = {}, ...kids) => {
   for (const c of kids.flat()) if (c != null) el.append(c.nodeType ? c : document.createTextNode(c));
   return el;
 };
+
+// Every menu sits behind Tab, one page per tab. [panel name, label, hotkey, opener]
+const MENU = [['inventory', 'Pack', 'Tab'], ['crafting', 'Crafting', 'Q'], ['skills', 'Skills', 'K'], ['prayer', 'Prayer', 'P'], ['journal', 'Journal', 'J'], ['map', 'Map', 'M']];
+const MENU_OPEN = { inventory: 'openInventory', crafting: 'openCrafting', skills: 'openSkills', prayer: 'openPrayer', journal: 'openJournal', map: 'openMap' };
 
 const WARES = [
   ['bottle', 10], ['bandage', 12], ['arrow', 4], ['torch', 18], ['rope', 12], ['flint', 6], ['fishing_rod', 35], ['leather', 22], ['cloth', 16],
@@ -45,6 +50,7 @@ export class UI {
     ev.on('buffs', () => this.renderBuffs());
     ev.on('xp', (id, amt) => this.xpDrop(id, amt));
     ev.on('levelup', (id, lvl) => this.levelUp(id, lvl));
+    ev.on('playerlevel', (lvl) => { setTimeout(() => { this.questBanner('You have grown', `Level ${lvl}`); this.game.audio.play('quest'); }, 1200); });
     ev.on('questsChanged', () => { if (this.panel?.name === 'journal') this.panel.refresh(); });
     addEventListener('mousemove', (e) => { this.mx = e.clientX; this.my = e.clientY; this.placeTooltip(); });
     $('tooltip').classList.add('hidden');
@@ -103,10 +109,11 @@ export class UI {
   }
   buildNeeds() {
     const box = $('needs');
-    const defs = [['water', 'Water', '#5aa0e0', '💧'], ['carbs', 'Carbs', '#e0c040', '🌾'], ['fat', 'Fats', '#e08a3a', '🧈'], ['protein', 'Protein', '#d0504a', '🍖'], ['energy', 'Energy', '#9a8ad0', '☾']];
+    const defs = [['calories', 'Calories', '#e0a060', '🔥'], ['water', 'Water', '#5aa0e0', '💧'], ['carbs', 'Carbs', '#e0c040', '🌾'], ['fat', 'Fats', '#e08a3a', '🧈'], ['protein', 'Protein', '#d0504a', '🍖'], ['energy', 'Energy', '#9a8ad0', '☾']];
     this.needEls = defs.map(([k, label, color, ico]) => {
       const arc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       const el = h('div', { class: 'need' });
+      el.title = label;
       el.innerHTML = `<svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="19" fill="rgba(0,0,0,0.5)" stroke="rgba(120,100,60,0.5)" stroke-width="4"/><text x="23" y="29" text-anchor="middle" font-size="16">${ico}</text></svg>${label}`;
       arc.setAttribute('cx', 23); arc.setAttribute('cy', 23); arc.setAttribute('r', 19);
       arc.setAttribute('fill', 'none'); arc.setAttribute('stroke', color); arc.setAttribute('stroke-width', 4);
@@ -172,8 +179,13 @@ export class UI {
     $('st-fill').style.width = (100 * p.stamina / p.maxStamina) + '%';
     $('rs-fill').style.width = (100 * p.resolve / p.maxResolve) + '%';
     const C = 2 * Math.PI * 19;
+    $('mn-fill').style.width = (100 * p.mana / p.maxMana) + '%';
+    const lvlText = `Level ${g.skills.playerLevel}${p.burden > 1 ? ' · <span style="color:#e08a70">overburdened</span>' : ''}`;
+    if (lvlText !== this._lvlText) { this._lvlText = lvlText; $('plevel').innerHTML = lvlText; }
+    if (this.job && !p.action?.craft) { this.job = null; if (this.panel?.name === 'crafting') this.panel.refresh(); } // walked away mid-craft
+    if (this.panel?.name === 'crafting') this.updateCraftJob();
     for (const n of this.needEls) {
-      const v = p.needs[n.k];
+      const v = n.k === 'calories' ? 100 * p.needs.calories / MAX_CALORIES : p.needs[n.k];
       n.arc.setAttribute('stroke-dashoffset', String(C * (1 - v / 100)));
       n.el.classList.toggle('low', v < 15);
     }
@@ -240,7 +252,9 @@ export class UI {
     if (def.armor) st.push(`Armor ${def.armor}`);
     if (def.block) st.push(`Block ${Math.round(def.block * 100)}%`);
     if (def.tier) st.push(`Tier ${def.tier}`);
-    if (def.food) st.push(['water', 'carbs', 'fat', 'protein'].filter(k => def.food[k]).map(k => `${k === 'fat' ? 'fats' : k} +${def.food[k]}`).join(', '));
+    if (def.food) st.push(`${def.kcal} kcal · ` + ['water', 'carbs', 'fat', 'protein'].filter(k => def.food[k]).map(k => `${k === 'fat' ? 'fats' : k} +${def.food[k]}`).join(', '));
+    if (def.bury) st.push(`Bury for ${def.bury} Prayer xp`);
+    st.push(`${def.weight} kg${s.n > 1 ? ` (${+(def.weight * s.n).toFixed(2)} kg)` : ''}`);
     if (s.dur != null && def.dur && def.dur < 9999) st.push(`Durability ${s.dur}/${def.dur}`);
     if (st.length) lines.push(`<div class="st">${st.join(' · ')}</div>`);
     lines.push(`<i>${def.desc}</i>`);
@@ -263,7 +277,15 @@ export class UI {
     this.closeCtx();
     this.panel = { name, build, ...opts };
     this.openedAt = performance.now();
-    this.panel.refresh = () => { const inner = $('panel-inner'); inner.innerHTML = ''; inner.append(h('button', { class: 'close', onclick: () => this.closeAll() }, '✕')); build(inner); };
+    const isMenu = MENU.some(m => m[0] === name);
+    if (isMenu) this.lastMenu = name;
+    this.panel.refresh = () => {
+      const inner = $('panel-inner');
+      inner.innerHTML = '';
+      inner.append(h('button', { class: 'close', onclick: () => this.closeAll() }, '✕'));
+      if (isMenu) inner.append(h('div', { class: 'menutabs' }, MENU.map(([n, label, key]) => h('button', { class: 'menutab' + (n === name ? ' on' : ''), onclick: () => { if (n !== name) this.openMenu(n); } }, label, h('small', {}, key)))));
+      build(inner);
+    };
     $('panel').classList.remove('hidden');
     this.panel.refresh();
     g.input.unlock();
@@ -280,6 +302,9 @@ export class UI {
     if (this.game.started && !this.game.player.dead && !was.keepUnlocked) this.game.input.lock();
   }
   toggle(name, fn) { if (this.panel?.name === name) this.closeAll(); else fn(); }
+  openMenu(name) { this[MENU_OPEN[name] || 'openInventory'](); }
+  // Tab: open the last menu page, or close whatever is open
+  toggleMenu() { if (this.panel) this.closeAll(); else this.openMenu(this.lastMenu || 'inventory'); }
 
   // ---------- inventory ----------
   openInventory() {
@@ -297,7 +322,10 @@ export class UI {
         eq.append(el, h('div', { class: 'lbl' }, s ? ITEMS[s.id].name : label));
       }
       left.append(eq);
-      left.append(h('div', { class: 'stats', html: `Combat level <b>${g.skills.combat}</b><br>Total level <b>${g.skills.total}</b><br>Armor <b>${p.armor}</b><br>Coins <b>${g.inventory.count('coin')}</b>` }));
+      const w = g.inventory.weight, cap = p.capacity, f = w / cap;
+      left.append(h('div', { class: 'stats', html: `Level <b>${g.skills.playerLevel}</b> <span style="color:#8a7a5a">(${g.skills.toNextPlayerLevel} skill levels to next)</span><br>Combat level <b>${g.skills.combat}</b> · Total <b>${g.skills.total}</b><br>Armor <b>${p.armor}</b> · Coins <b>${g.inventory.count('coin')}</b><br>Mana <b>${Math.floor(p.mana)}/${p.maxMana}</b> · Calories <b>${Math.floor(p.needs.calories)}</b>` }));
+      left.append(h('div', { class: 'stats', style: 'margin-top:6px' }, `Load ${w.toFixed(1)} / ${cap.toFixed(1)} kg`, h('div', { class: 'loadbar' }, h('div', { style: `width:${Math.min(100, f * 100)}%;background:${f > 1 ? '#c04a3a' : f > 0.75 ? '#c8a040' : '#6a9a4a'}` })),
+        h('div', { style: 'font-size:13px;color:#8a7a5a' }, f > 1.5 ? 'Far too heavy to move.' : f > 1 ? 'Overburdened: no running or jumping.' : 'Strength raises how much you can carry.')));
       const right = h('div', {});
       right.append(h('div', { class: 'sec' }, 'BELT  (1–8)'));
       right.append(this.invGrid(0, BELT, 'beltslot'));
@@ -367,7 +395,8 @@ export class UI {
     const g = this.game, s = g.inventory.slots[i], def = ITEMS[s.id];
     const verbs = { food: 'Eat', drink: 'Drink', potion: 'Drink', medicine: 'Apply', book: 'Read', placeable: 'Place', armor: 'Wear', shield: 'Equip', trinket: 'Wear', bag: 'Strap on' };
     const items = [];
-    if (verbs[def.type]) items.push([verbs[def.type], () => g.player.consume(i)]);
+    if (def.bury) items.push(['Bury', () => g.player.consume(i)]);
+    else if (verbs[def.type]) items.push([verbs[def.type], () => g.player.consume(i)]);
     if (i >= BELT) items.push(['Move to belt', () => { const free = g.inventory.slots.findIndex((x, k) => k < BELT && !x); g.inventory.swap(i, free >= 0 ? free : g.player.belt); }]);
     else items.push(['Hold', () => g.player.selectBelt(i)]);
     items.push(['Drop', () => this.dropSlot(i, true)]);
@@ -450,44 +479,97 @@ export class UI {
           const have = g.inventory.count(id);
           det.append(h('div', { class: 'req ' + (have >= n ? 'ok' : 'no') }, h('img', { src: itemIcon(id) }), `${ITEMS[id].name}  ${have}/${n}`));
         }
+        for (const tool of sel.tools || []) {
+          const has = this.hasTool(tool);
+          det.append(h('div', { class: 'req ' + (has ? 'ok' : 'no') }, h('img', { src: itemIcon(tool) }), `Tool: ${ITEMS[tool].name} ${has ? '✓' : '(needed, not used up)'}`));
+        }
         det.append(h('div', { class: 'req ' + (lvlOk ? 'ok' : 'no'), style: 'margin-top:8px' }, `${SKILLS[sel.skill].icon} ${SKILLS[sel.skill].name} level ${sel.level}  ·  ${sel.xp} xp`));
+        det.append(h('div', { class: 'req', style: 'color:#b3a585' }, `⌛ ${fmtMins(sel.mins)}${sel.chance ? `  ·  ${Math.round(this.craftChance(sel) * 100)}% chance` : ''}`));
         if (!atStation) det.append(h('div', { class: 'req no' }, `Requires a ${STATIONS[sel.station].toLowerCase()} nearby${sel.station === 'fire' ? ' (lit)' : ''}.`));
-        const can = lvlOk && atStation && g.inventory.has(sel.in);
+        const can = lvlOk && atStation && g.inventory.has(sel.in) && (sel.tools || []).every(t => this.hasTool(t)) && !this.job;
         const maxN = can ? Math.min(...Object.entries(sel.in).map(([id, n]) => Math.floor(g.inventory.count(id) / n))) : 0;
         det.append(h('div', { style: 'display:flex;gap:8px;margin-top:14px' },
-          h('button', { disabled: can ? null : 'disabled', onclick: () => { this.craft(sel, 1); this.panel.refresh(); } }, 'Make'),
-          h('button', { disabled: maxN > 1 ? null : 'disabled', onclick: () => { this.craft(sel, Math.min(maxN, 10)); this.panel.refresh(); } }, `Make ${Math.min(Math.max(maxN, 2), 10)}`)));
+          h('button', { disabled: can ? null : 'disabled', onclick: () => { this.startCraft(sel, 1); this.panel.refresh(); } }, 'Make'),
+          h('button', { disabled: maxN > 1 ? null : 'disabled', onclick: () => { this.startCraft(sel, Math.min(maxN, 10)); this.panel.refresh(); } }, `Make ${Math.min(Math.max(maxN, 2), 10)}`)));
+        if (this.job) det.append(h('div', { class: 'craftjob' }, h('div', { id: 'craftjob-label' }, ''), h('div', { class: 'abar' }, h('div', { id: 'craftjob-fill', style: 'height:100%;background:var(--gold);width:0' })), h('button', { onclick: () => { this.cancelCraft(); this.panel.refresh(); } }, 'Stop')));
       }
       root.append(h('div', { class: 'row' }, list, det));
     });
   }
 
-  craft(r, times) {
-    const g = this.game;
-    let made = 0;
-    for (let k = 0; k < times; k++) {
-      if (!g.inventory.has(r.in)) break;
-      for (const [id, n] of Object.entries(r.in)) g.inventory.remove(id, n);
-      let out = r.out, xp = r.xp;
-      if (r.burn) {
-        const lvl = g.skills.level(r.skill);
-        if (Math.random() < Math.max(0, 0.45 - (lvl - r.level) * 0.04)) { out = r.burn; xp = Math.round(xp * 0.2); this.toast('You burn it.'); }
-      }
+  hasTool(id) { return this.game.inventory.slots.some(s => s && s.id === id); }
+  craftChance(r) { return r.chance ? Math.min(0.9, r.chance + this.game.skills.level(r.skill) * (r.chanceLvl || 0)) : 1; }
+
+  // Crafting takes time: a short real wait, then the clock jumps forward by the recipe's minutes.
+  startCraft(r, times) {
+    if (this.job) return;
+    this.job = { r, left: times, total: times, made: 0 };
+    this.nextCraft();
+  }
+  nextCraft() {
+    const g = this.game, job = this.job;
+    if (!job) return;
+    if (job.left <= 0 || !g.inventory.has(job.r.in)) { this.endCraft(); return; }
+    const real = Math.min(6, 0.6 + job.r.mins * 0.04);
+    const label = `Making ${ITEMS[job.r.out].name}${job.total > 1 ? ` (${job.total - job.left + 1}/${job.total})` : ''}`;
+    g.audio.play(job.r.station === 'anvil' ? 'anvil' : job.r.station === 'fire' || job.r.station === 'bloomery' ? 'fire' : 'craft', 0.6);
+    g.player.startAction(label, real, () => { this.finishCraft(real); }, { cancelOnMove: true });
+    g.player.action.craft = true;
+  }
+  finishCraft(realSecs) {
+    const g = this.game, job = this.job;
+    if (!job) return;
+    const r = job.r;
+    if (!g.inventory.has(r.in) || !(r.station === 'hand' || g.stationsNear().has(r.station))) { this.toast('You can no longer make that here.'); this.endCraft(); return; }
+    for (const [id, n] of Object.entries(r.in)) g.inventory.remove(id, n);
+    for (const t of r.tools || []) { // tools wear a little
+      const slot = g.inventory.slots.find(s => s && s.id === t);
+      if (slot && slot.dur != null && --slot.dur <= 0) { g.inventory.slots[g.inventory.slots.indexOf(slot)] = null; this.toast(`Your ${ITEMS[t].name} breaks.`); g.inventory.changed(); }
+    }
+    let out = r.out, xp = r.xp, failed = false;
+    if (r.burn) {
+      const lvl = g.skills.level(r.skill);
+      if (Math.random() < Math.max(0, 0.45 - (lvl - r.level) * 0.04)) { out = r.burn; xp = Math.round(xp * 0.2); this.toast('You burn it.'); }
+    }
+    if (r.chance && Math.random() > this.craftChance(r)) { failed = true; xp = r.failXp || 0; this.toast(r.fail || 'It fails.'); }
+    if (!failed) {
       const left = g.inventory.add(out, r.n);
       if (left) g.world.dropItem(out, left, g.player.pos.clone().add(new THREE.Vector3(0, 0.5, 0)));
       for (const [id, n] of Object.entries(r.returns || {})) g.inventory.add(id, n);
-      g.skills.add(r.skill, xp);
-      if (out === r.out) { g.events.emit('crafted', r.out, r.n); made++; }
+      if (out === r.out) { g.events.emit('crafted', r.out, r.n); job.made++; }
     }
-    g.audio.play(r.station === 'anvil' ? 'anvil' : r.station === 'fire' || r.station === 'bloomery' ? 'fire' : 'craft');
-    if (made) this.toast(`Made ${ITEMS[r.out].name}${made * r.n > 1 ? ' ×' + made * r.n : ''}.`);
+    g.skills.add(r.skill, xp);
+    // the rest of the work happens in the blink of the clock
+    const skipped = Math.max(0, r.mins - realSecs);
+    g.world.sky.advance(skipped / 60);
+    g.world.time += skipped;
+    g.player.passTime(skipped);
+    g.structures.passTime(skipped);
+    job.left--;
+    if (job.left > 0) this.nextCraft();
+    else this.endCraft();
+  }
+  cancelCraft() { if (this.game.player.action?.craft) this.game.player.action = null; this.endCraft(); }
+  endCraft() {
+    const job = this.job;
+    this.job = null;
+    if (job?.made) this.toast(`Made ${ITEMS[job.r.out].name}${job.made * job.r.n > 1 ? ' ×' + job.made * job.r.n : ''}.`);
+    if (this.panel?.name === 'crafting') this.panel.refresh();
+  }
+  updateCraftJob() {
+    const a = this.game.player.action;
+    if (this.job && a?.craft) {
+      const l = $('craftjob-label'), f = $('craftjob-fill');
+      if (l) l.textContent = a.label + '…';
+      if (f) f.style.width = (100 * a.t / a.dur) + '%';
+    }
   }
 
   // ---------- skills ----------
   openSkills() {
     this.open('skills', (root) => {
       const g = this.game;
-      root.append(h('div', { class: 'ptitle' }, 'Skills', h('small', {}, `Total level ${g.skills.total} · Combat level ${g.skills.combat}`)));
+      root.append(h('div', { class: 'ptitle' }, `Level ${g.skills.playerLevel}`, h('small', {}, `Total skill level ${g.skills.total} · Combat level ${g.skills.combat} · every ${LEVELS_PER_PLAYER_LEVEL} skill levels raise your level (${g.skills.toNextPlayerLevel} to go)`)));
       const grid = h('div', { class: 'skillgrid' });
       for (const [k, s] of Object.entries(SKILLS)) {
         const lvl = g.skills.level(k), xp = g.skills.xp[k];
@@ -498,6 +580,25 @@ export class UI {
         el.addEventListener('mouseenter', () => { $('tooltip').innerHTML = `<h4>${s.name}</h4><div class="st">${xp.toLocaleString()} xp${lvl < MAX_LEVEL ? ` · ${(next - xp).toLocaleString()} to level ${lvl + 1}` : ''}</div><i>${s.desc}</i>`; $('tooltip').classList.remove('hidden'); this.placeTooltip(); });
         el.addEventListener('mouseleave', () => this.hideTooltip());
         grid.append(el);
+      }
+      root.append(grid);
+    });
+  }
+
+  // ---------- prayer ----------
+  openPrayer() {
+    this.open('prayer', (root) => {
+      const g = this.game, p = g.player, lvl = g.skills.level('prayer');
+      root.append(h('div', { class: 'ptitle' }, 'Prayer', h('small', {}, `Prayer ${lvl} · Mana ${Math.floor(p.mana)}/${p.maxMana} · G speaks your chosen incantation`)));
+      root.append(h('p', { style: 'max-width:620px;font-style:italic;color:#b3a585;margin-top:0' }, 'Bury the bones you find (hold them and strike, or right-click them in your pack). The dead remember who laid them down. From Prayer 5 the old words answer you.'));
+      const grid = h('div', { class: 'incs' });
+      for (const inc of INCANTATIONS) {
+        const ok = lvl >= inc.level;
+        grid.append(h('div', { class: 'inc' + (ok ? '' : ' locked') + (p.quickIncantation === inc.id ? ' quick' : '') },
+          h('h4', {}, inc.name), h('div', { class: 'words' }, ok ? `“${inc.words}”` : '…'),
+          h('div', { class: 'meta' }, `${inc.desc}  ·  ${inc.mana} mana  ·  Prayer ${inc.level}`),
+          ok ? h('button', { onclick: () => { this.closeAll(); p.cast(inc.id); } }, 'Speak') : null,
+          ok ? h('button', { onclick: () => { p.quickIncantation = inc.id; this.panel.refresh(); } }, p.quickIncantation === inc.id ? 'On G ✓' : 'Set to G') : null));
       }
       root.append(grid);
     });
@@ -664,8 +765,8 @@ export class UI {
         <div><b>WASD</b> move</div><div><b>Shift</b> run</div><div><b>Space</b> jump · swim up</div><div><b>C / Ctrl</b> sneak</div>
         <div><b>Mouse</b> look</div><div><b>LMB</b> strike · chop · mine · use held item</div><div><b>Hold LMB</b> power attack · draw bow</div>
         <div><b>RMB</b> block</div><div><b>E</b> interact · drink · take</div><div><b>F</b> secondary action (feed fire, pick up)</div>
-        <div><b>1–8 / Wheel</b> choose belt item</div><div><b>Tab / I</b> pack</div><div><b>Q</b> crafting</div><div><b>K</b> skills</div>
-        <div><b>J</b> journal</div><div><b>M</b> map</div><div><b>R</b> rotate when building</div><div><b>Esc</b> pause</div>` }));
+        <div><b>1–8 / Wheel</b> choose belt item</div><div><b>Tab</b> menu (pack, crafting, skills, prayer, journal, map)</div><div><b>Q / K / P</b> crafting / skills / prayer</div>
+        <div><b>J / M</b> journal / map</div><div><b>G</b> speak your chosen incantation</div><div><b>R</b> rotate when building</div><div><b>Esc</b> pause</div>` }));
       root.append(h('p', { style: 'max-width:620px;font-style:italic;color:#b3a585;line-height:1.5', html: `Keep your body alive: drink boiled water, and eat across all three foods (carbs, fats, protein); each one you neglect weakens you in its own way.
         Keep your mind alive: the dark wears down your <b>Resolve</b>. Fire, rest, books and company restore it.
         Every skill rises with use. Chop, mine, cook, fight, run. Craft better tools at stations you build yourself.` }));
@@ -721,7 +822,10 @@ export class UI {
   }
 }
 
+function fmtMins(m) { return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`; }
+
 function levelLine(id, lvl) {
+  if (id === 'prayer') { const inc = INCANTATIONS.find(i => i.level === lvl); if (inc) return `You remember the ${inc.name}`; }
   const unlocks = RECIPES.filter(r => r.skill === id && r.level === lvl).map(r => ITEMS[r.out].name);
   if (unlocks.length) return 'You can now make ' + unlocks.slice(0, 3).join(', ');
   return { woodcutting: lvl === 15 ? 'Pine yields to you now' : null, mining: { 15: 'Iron yields to you now', 20: 'You can mine coal', 30: 'Gold glints for you now', 35: 'The aether answers' }[lvl] }[id] || 'You grow stronger';

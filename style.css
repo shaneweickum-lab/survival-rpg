@@ -69,6 +69,25 @@ h1 { font-family: var(--title); font-size: clamp(42px, 8vw, 78px); letter-spacin
 .fill.hp { background: linear-gradient(#d8483a, #8a1f18); }
 .fill.st { background: linear-gradient(#6aac4a, #2f5a22); }
 .fill.rs { background: linear-gradient(#8a7ae0, #3f308a); }
+.fill.mn { background: linear-gradient(#5ab0e8, #1f4a8a); }
+#plevel { font-family: var(--title); font-size: 13px; color: var(--gold); text-shadow: 0 1px 3px #000; margin-bottom: 4px; letter-spacing: 0.06em; }
+.menutabs { display: flex; gap: 2px; margin: -6px 30px 14px 0; border-bottom: 1px solid var(--panel-edge); flex-wrap: wrap; }
+.menutab { background: none; border: none; border-bottom: 2px solid transparent; padding: 6px 12px; font-size: 13px; color: var(--ink-dim); }
+.menutab:hover:not(:disabled) { box-shadow: none; color: #fff0c8; }
+.menutab.on { color: #fff0c8; border-bottom-color: var(--gold); }
+.menutab small { font-family: var(--body); font-size: 11px; opacity: 0.6; margin-left: 4px; }
+.loadbar { height: 6px; background: rgba(0, 0, 0, 0.5); border: 1px solid #4a3a22; margin: 4px 0 2px; }
+.loadbar div { height: 100%; }
+.craftjob { margin-top: 12px; padding: 8px 10px; border: 1px solid var(--gold-dim); background: rgba(60, 45, 25, 0.4); }
+.craftjob .abar { margin: 6px 0; }
+.incs { display: grid; grid-template-columns: repeat(2, 300px); gap: 6px; }
+.inc { background: var(--slot); border: 1px solid #4a3a22; padding: 8px 12px; }
+.inc.locked { opacity: 0.45; }
+.inc.quick { border-color: var(--gold); }
+.inc h4 { margin: 0; font-family: var(--title); font-size: 14px; color: #f0e0b0; }
+.inc .words { font-style: italic; color: var(--ink-dim); font-size: 14px; margin: 3px 0; }
+.inc .meta { font-size: 13px; color: #8ab8e0; }
+.inc button { padding: 3px 10px; font-size: 12px; margin: 6px 6px 0 0; }
 #buffs { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
 .buff { font-size: 13px; padding: 2px 7px; background: rgba(20, 15, 10, 0.8); border: 1px solid #5a7a3a; border-radius: 2px; text-shadow: none; }
 .buff.bad { border-color: #a03a2a; color: #ffb0a0; }

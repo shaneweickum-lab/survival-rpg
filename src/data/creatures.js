@@ -5,18 +5,18 @@ export const CREATURES = {
     name: 'Burrow Rat', model: 'creatures/Rat', size: 1.45, yaw: 0, level: 3,
     hp: 30, dmg: 5, speed: 3.4, aggro: 7, nightAggro: 15, attackRange: 1.4, attackRate: 1.3,
     gait: 'scurry', bleed: 0.15,
-    loot: [['raw_meat', 1, 2, 1], ['rat_hide', 1, 1, 0.9], ['bone', 1, 1, 0.3]], xp: 30,
+    loot: [['raw_meat', 1, 2, 1], ['rat_hide', 1, 1, 0.9], ['bone', 1, 2, 0.7]], xp: 30,
   },
   frog: {
     name: 'Bog Toad', model: 'creatures/Frog', size: 0.75, yaw: 0, level: 1,
     hp: 16, dmg: 0, speed: 3.0, passive: true, gait: 'hop',
-    loot: [['frog_leg', 1, 2, 1], ['toad_slime', 1, 2, 0.7]], xp: 14,
+    loot: [['frog_leg', 1, 2, 1], ['toad_slime', 1, 2, 0.7], ['bone', 1, 1, 0.3]], xp: 14,
   },
   snake: {
     name: 'Marsh Viper', model: 'creatures/Snake', angryModel: 'creatures/Snake_angry', size: 1.1, yaw: 0, level: 6,
     hp: 34, dmg: 7, speed: 2.6, aggro: 6, nightAggro: 8, attackRange: 1.6, attackRate: 1.6,
     gait: 'slither', poison: 0.4,
-    loot: [['raw_meat', 1, 1, 0.8], ['venom_sac', 1, 1, 0.8]], xp: 55,
+    loot: [['raw_meat', 1, 1, 0.8], ['venom_sac', 1, 1, 0.8], ['bone', 1, 2, 0.6]], xp: 55,
   },
   spider: {
     name: 'Thornback Spider', model: 'creatures/Spider', size: 1.9, yaw: 0, level: 11,
@@ -34,7 +34,7 @@ export const CREATURES = {
     name: 'Hollow Wisp', model: 'items/Skull', size: 0.55, yaw: 0, level: 14,
     hp: 45, dmg: 9, speed: 3.8, aggro: 22, nightAggro: 22, attackRange: 1.6, attackRate: 1.5,
     gait: 'float', flyHeight: 1.6, nocturnal: true, hollow: true, resolveDmg: 8,
-    loot: [['wisp_ash', 1, 2, 1], ['bone', 1, 2, 0.5], ['coin', 3, 12, 0.6]], xp: 150,
+    loot: [['wisp_ash', 1, 2, 1], ['bone', 1, 3, 0.9], ['skull', 1, 1, 0.3], ['coin', 3, 12, 0.6]], xp: 150,
   },
   broodmother: {
     name: 'The Broodmother', model: 'creatures/Spider', size: 4.6, yaw: 0, level: 32, boss: true,

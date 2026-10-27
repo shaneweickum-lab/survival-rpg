@@ -163,9 +163,13 @@ export class Creatures {
     c.deadT = 0;
     this.killed[c.type] = (this.killed[c.type] || 0) + 1;
     g.events.emit('killed', c.type);
+    const hunt = g.skills.level('hunting');
+    g.skills.add('hunting', Math.round(c.C.xp * 0.5));
     for (const [id, a, b, p] of c.C.loot) {
       if (Math.random() > p) continue;
-      const n = a + Math.floor(Math.random() * (b - a + 1));
+      let n = a + Math.floor(Math.random() * (b - a + 1));
+      // a practiced hunter butchers cleanly
+      if (['raw_meat', 'frog_leg', 'rat_hide', 'spider_silk', 'chitin', 'honeycomb'].includes(id) && Math.random() < hunt * 0.008) n++;
       g.world.dropItem(id, n, c.pos.clone().add(new THREE.Vector3(0, 0.3, 0)));
     }
     if (c.C.boss) {

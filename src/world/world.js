@@ -222,6 +222,7 @@ export class World {
       const left = g.inventory.add(K.item, 1);
       if (left) this.dropItem(K.item, left, new THREE.Vector3(node.x, node.h + 0.5, node.z));
       g.skills.add('woodcutting', K.xp);
+      g.skills.add('strength', 3);
       g.events.emit('chopped', node.kind);
       if (node.kind === 'dead' && Math.random() < 0.5) g.inventory.add('stick', 1);
       if (node.kind === 'oak' && Math.random() < 0.15) { g.inventory.add('apple', 1); g.ui.toast('An apple falls.'); }
@@ -329,6 +330,7 @@ export class World {
       const left = g.inventory.add(K.item, 1);
       if (left) this.dropItem(K.item, left, new THREE.Vector3(node.x, node.h + 1, node.z));
       g.skills.add('mining', K.xp);
+      g.skills.add('strength', 3);
       g.events.emit('mined', node.kind);
       if (node.kind !== 'stone' && Math.random() < 0.3) g.inventory.add('stone', 1);
       node.remaining--;
